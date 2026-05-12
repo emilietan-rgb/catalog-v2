@@ -1,0 +1,33 @@
+.bulk-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f1012;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  z-index: 100;
+  white-space: nowrap;
+}
+.bulk-count { font-size: 13px; font-weight: 500; }
+.bulk-actions { display: flex; align-items: center; gap: 4px; }
+.bulk-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.bulk-btn:hover { background: rgba(255,255,255,0.18); }
+.bulk-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.bulk-close { padding: 5px 8px; }
