@@ -313,8 +313,8 @@ function VinylIcon() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function ReleasePage({ release, onBack }) {
-  const [tab, setTab] = useState('distribution')
+export default function ReleasePage({ release, onBack, isFavorited, onToggleFavorite }) {
+  const [tab, setTab] = useState('overview')
 
   const typeLabel = release.type === 'video' ? 'Video' : release.type === 'ring' ? 'Ringtone' : 'Audio'
   const typeIcon  = release.type === 'video' ? <VideoIcon /> : release.type === 'ring' ? <RingtoneIcon /> : null
@@ -355,6 +355,19 @@ export default function ReleasePage({ release, onBack }) {
           <div className="rp-detail-col">
             <span className="rp-detail-label">Distribution</span>
             <span className="rp-detail-value rp-detail-with-icon">{distIcon}{distLabel}</span>
+          </div>
+          <div className="rp-header-actions">
+            <button
+              className={`rp-action-btn rp-heart-btn${isFavorited ? ' rp-heart-btn--active' : ''}`}
+              onClick={onToggleFavorite}
+              title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <svg width="15" height="15" viewBox="0 0 16 16" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 13.5S2 9.3 2 5.5a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 14 5.5c0 3.8-6 8-6 8z"/>
+              </svg>
+            </button>
+            <button className="rp-action-btn">Edit</button>
+            <button className="rp-action-btn rp-action-btn--more">···</button>
           </div>
         </div>
       </div>

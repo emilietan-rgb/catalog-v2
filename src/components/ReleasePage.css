@@ -84,6 +84,36 @@
   flex-shrink: 0;
 }
 
+.rp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rp-action-btn {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #e5e7ef;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  color: #3a3c42;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.rp-action-btn:hover { background: #f3f4f8; border-color: #d0d5e4; }
+.rp-heart-btn {
+  width: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9aa0b0;
+}
+.rp-heart-btn--active { color: #e63a52; border-color: #fcdde2; background: #fff5f6; }
+.rp-heart-btn--active:hover { background: #ffeaed; }
+.rp-action-btn--more { letter-spacing: 1px; font-size: 14px; line-height: 1; }
+
 .rp-detail-col {
   display: flex;
   flex-direction: column;

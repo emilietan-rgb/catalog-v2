@@ -107,6 +107,23 @@
 }
 .nav-sub.active:hover { background: #27282c; }
 
+.nav-sub-badge {
+  margin-left: auto;
+  background: #3a3c42;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 99px;
+  min-width: 16px;
+  text-align: center;
+}
+.nav-sub.active .nav-sub-badge {
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
 .nav-divider {
   height: 1px;
   background: rgba(0,0,0,0.06);

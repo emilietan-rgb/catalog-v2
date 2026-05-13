@@ -30,7 +30,7 @@ const Chevron = () => (
   </svg>
 )
 
-export default function Sidebar({ activeView, onNavigate }) {
+export default function Sidebar({ activeView, onNavigate, favoritesCount = 0 }) {
   const [catalogOpen, setCatalogOpen] = useState(true)
 
   return (
@@ -84,8 +84,12 @@ export default function Sidebar({ activeView, onNavigate }) {
             >
               Drafts
             </button>
-            <button className="nav-sub">
+            <button
+              className={`nav-sub${activeView === 'favorites' ? ' active' : ''}`}
+              onClick={() => onNavigate('favorites')}
+            >
               Favorites
+              {favoritesCount > 0 && <span className="nav-sub-badge">{favoritesCount}</span>}
             </button>
           </div>
         )}
