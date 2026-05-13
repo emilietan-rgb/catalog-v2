@@ -2,6 +2,7 @@ import { useState } from 'react'
 import ReleaseRow from './ReleaseRow'
 import BulkActionBar from './BulkActionBar'
 import Pagination from './Pagination'
+import FilterChip from './FilterChip'
 import './ReleasesView.css'
 
 const RELEASES = [
@@ -135,7 +136,23 @@ const RELEASES = [
   },
 ]
 
-function Toolbar({ search, onSearch }) {
+const PEOPLE = ['Echo Park', 'Kira Voss', 'Lena Maris', 'Maëva Cruz', 'Abstrak Kid', 'Drift State', 'Solène']
+const STATUS_OPTIONS = ['Delivered', 'Under review', 'Action requested', 'Sent to DSPs', 'Taken down']
+
+const ARTIST_AVATAR_SEEDS = {
+  'Echo Park':  'ep_av', 'Kira Voss': 'kv_av', 'Lena Maris': 'lm_av',
+  'Maëva Cruz': 'mc_av', 'Abstrak Kid': 'ak_av', 'Drift State': 'ds_av', 'Solène': 'sol_av',
+}
+
+const RELEASE_COUNTS = RELEASES.reduce((acc, r) => {
+  acc[r.account] = (acc[r.account] || 0) + 1
+  return acc
+}, {})
+
+function Toolbar({ search, onSearch, filters, onFilter }) {
+  const getAvatarSrc = name => `https://picsum.photos/seed/${ARTIST_AVATAR_SEEDS[name]}/80/80`
+  const getMeta = name => { const c = RELEASE_COUNTS[name]; return c ? `${c} release${c !== 1 ? 's' : ''}` : null }
+
   return (
     <div className="toolbar">
       <div className="toolbar-left">
@@ -150,9 +167,10 @@ function Toolbar({ search, onSearch }) {
           />
           <span className="search-kbd">⌘K</span>
         </div>
-        {['Account','Artist','Status','Release date'].map(f => (
-          <button key={f} className="filter-chip">{f} <span className="chip-caret">▾</span></button>
-        ))}
+        <FilterChip label="Account"      options={PEOPLE}          value={filters.account} onChange={v => onFilter('account', v)} multi showSearch avatarType="initials" getMeta={getMeta} />
+        <FilterChip label="Artist"       options={PEOPLE}          value={filters.artist}  onChange={v => onFilter('artist',  v)} multi showSearch avatarType="photo" getAvatarSrc={getAvatarSrc} getMeta={getMeta} />
+        <FilterChip label="Status"       options={STATUS_OPTIONS}  value={filters.status}  onChange={v => onFilter('status',  v)} multi />
+        <FilterChip label="Release date" value={filters.date}      onChange={v => onFilter('date', v)} type="date" />
       </div>
     </div>
   )
@@ -162,10 +180,22 @@ export default function ReleasesView() {
   const [selected, setSelected] = useState(new Set())
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [filters, setFilters] = useState({ account: [], artist: [], status: [], date: null })
 
-  const filtered = RELEASES.filter(r =>
-    !search || r.title.toLowerCase().includes(search.toLowerCase()) || r.artist.toLowerCase().includes(search.toLowerCase())
-  )
+  const STATUS_LABEL_MAP = {
+    delivered: 'Delivered', review: 'Under review', action: 'Action requested',
+    sent: 'Sent to DSPs', takedown: 'Taken down',
+  }
+
+  const handleFilter = (key, value) => setFilters(f => ({ ...f, [key]: value }))
+
+  const filtered = RELEASES.filter(r => {
+    if (search && !r.title.toLowerCase().includes(search.toLowerCase()) && !r.artist.toLowerCase().includes(search.toLowerCase())) return false
+    if (filters.account.length && !filters.account.includes(r.account)) return false
+    if (filters.artist.length  && !filters.artist.includes(r.artist))   return false
+    if (filters.status.length  && !filters.status.includes(STATUS_LABEL_MAP[r.status])) return false
+    return true
+  })
 
   const toggleSelect = (id, checked) => {
     setSelected(prev => {
@@ -188,20 +218,17 @@ export default function ReleasesView() {
         </div>
       </div>
 
-      <Toolbar search={search} onSearch={setSearch} />
+      <Toolbar search={search} onSearch={setSearch} filters={filters} onFilter={handleFilter} />
 
       <div className="list-container">
-        <div className="list-header">
-          <div className="list-count">Releases (300)</div>
-        </div>
-
         <div className="list-table-header">
-          <div style={{width: 36}}></div>
-          <div className="th" style={{flex:'2.4'}}>Release</div>
-          <div className="th" style={{flex:'1'}}>Account</div>
-          <div className="th" style={{width:110}}>Release date</div>
-          <div className="th" style={{width:180}}>Status</div>
-          <div style={{width:40}}></div>
+          <div style={{width: 48}}></div>
+          <div className="th" style={{flex:'2'}}>Releases (300)</div>
+          <div className="th" style={{width:164}}>Account</div>
+          <div className="th" style={{width:164}}>Release date</div>
+          <div className="th" style={{width:164}}>Status</div>
+          <div className="th" style={{flex:'1'}}>Information</div>
+          <div style={{width:48}}></div>
         </div>
 
         <div className="list-rows">

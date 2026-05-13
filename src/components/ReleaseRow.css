@@ -1,6 +1,6 @@
 .release-row {
   display: grid;
-  grid-template-columns: 36px 2.4fr 1fr 110px 180px 40px;
+  grid-template-columns: 48px 2fr 164px 164px 164px 1fr 48px;
   align-items: center;
   height: 64px;
   overflow: hidden;
@@ -127,10 +127,11 @@
   gap: 4px;
   font-size: 12px;
   font-weight: 400;
-  color: #747884;
+  color: #9aa0b0;
   white-space: nowrap;
   line-height: 18px;
 }
+.release-artist { color: #9aa0b0; }
 .meta-sep { color: #cdd3e2; }
 .release-upc { font-size: 11px; }
 

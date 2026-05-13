@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import StatusBadge from './StatusBadge'
 import './ReleaseRow.css'
 
@@ -42,15 +41,10 @@ function InfoLine({ text, color }) {
 }
 
 export default function ReleaseRow({ release, selected, onSelect }) {
-  const [hovered, setHovered] = useState(false)
   const hasAction = release.status === 'action'
 
   return (
-    <div
-      className={`release-row${selected ? ' selected' : ''}${hasAction ? ' has-action' : ''}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div className={`release-row${selected ? ' selected' : ''}${hasAction ? ' has-action' : ''}`}>
       {/* Checkbox */}
       <div className="release-cell-check">
         <input
@@ -81,7 +75,7 @@ export default function ReleaseRow({ release, selected, onSelect }) {
             <span className="release-title">{release.title}</span>
           </div>
           <div className="release-meta">
-            <span>{release.artist}</span>
+            <span className="release-artist">{release.artist}</span>
             <span className="meta-sep">·</span>
             <span>{release.trackCount} {release.trackCount === 1 ? 'track' : 'tracks'}</span>
             <span className="meta-sep">·</span>
@@ -102,14 +96,16 @@ export default function ReleaseRow({ release, selected, onSelect }) {
       {/* Status */}
       <div className="release-cell release-cell-status">
         <StatusBadge status={release.status} />
+      </div>
+
+      {/* Information */}
+      <div className="release-cell release-cell-info">
         <InfoLine text={release.infoText} color={release.infoColor} />
       </div>
 
       {/* Actions */}
       <div className="release-cell release-cell-actions">
-        {hovered && (
-          <button className="row-menu-btn" onClick={e => e.stopPropagation()}>···</button>
-        )}
+        <button className="row-menu-btn" onClick={e => e.stopPropagation()}>···</button>
       </div>
     </div>
   )
