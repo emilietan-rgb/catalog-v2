@@ -1,4 +1,5 @@
 .release-row {
+  cursor: pointer;
   display: grid;
   grid-template-columns: 48px 2fr 164px 164px 164px 1fr 48px;
   align-items: center;

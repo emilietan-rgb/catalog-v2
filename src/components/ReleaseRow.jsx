@@ -2,7 +2,7 @@ import StatusBadge from './StatusBadge'
 import './ReleaseRow.css'
 
 function tooltipLabel(type, subtype) {
-  if (subtype === 'Physical') return 'Physical'
+  if (subtype === 'Physical') return 'Physical distribution'
   if (type === 'video') return 'Video'
   if (type === 'ring') return 'Ringtone'
   return null
@@ -35,16 +35,23 @@ function TypeIconWithTooltip({ type, subtype }) {
   )
 }
 
+function getInfoColor(status, info) {
+  if (!info) return '#9aa0b0'
+  if (status === 'action') return '#e63a52'
+  if (info.includes('taken down') || info === 'In progress') return '#b45309'
+  return '#9aa0b0'
+}
+
 function InfoLine({ text, color }) {
   if (!text) return null
   return <span className="release-info-line" style={{ color: color || '#9aa0b0' }}>{text}</span>
 }
 
-export default function ReleaseRow({ release, selected, onSelect }) {
+export default function ReleaseRow({ release, selected, onSelect, onOpen }) {
   const hasAction = release.status === 'action'
 
   return (
-    <div className={`release-row${selected ? ' selected' : ''}${hasAction ? ' has-action' : ''}`}>
+    <div className={`release-row${selected ? ' selected' : ''}${hasAction ? ' has-action' : ''}`} onClick={onOpen}>
       {/* Checkbox */}
       <div className="release-cell-check">
         <input
@@ -58,8 +65,8 @@ export default function ReleaseRow({ release, selected, onSelect }) {
       {/* Entity cell: cover + title/subtitle */}
       <div className="release-cell-release">
         <div className="release-cover">
-          {release.cover
-            ? <img src={release.cover} alt={release.title} width="48" height="48" />
+          {release.coverImage
+            ? <img src={release.coverImage} alt={release.title} width="48" height="48" />
             : <div className="cover-placeholder">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                   <path d="M9 3v7.5a2.5 2.5 0 1 1-2-2.45V3h2z"/>
@@ -77,7 +84,7 @@ export default function ReleaseRow({ release, selected, onSelect }) {
           <div className="release-meta">
             <span className="release-artist">{release.artist}</span>
             <span className="meta-sep">·</span>
-            <span>{release.trackCount} {release.trackCount === 1 ? 'track' : 'tracks'}</span>
+            <span>{release.trackCount === 0 ? '—' : `${release.trackCount} ${release.trackCount === 1 ? 'track' : 'tracks'}`}</span>
             <span className="meta-sep">·</span>
             <span className="mono release-upc">{release.upc || '—'}</span>
           </div>
@@ -89,8 +96,8 @@ export default function ReleaseRow({ release, selected, onSelect }) {
 
       {/* Release date */}
       <div className="release-cell release-cell-date">
-        <span>{release.date}</span>
-        {release.time && <span className="mono release-time">{release.time}</span>}
+        <span>{release.releaseDate}</span>
+        {release.releaseTime && <span className="mono release-time">{release.releaseTime}</span>}
       </div>
 
       {/* Status */}
@@ -100,7 +107,7 @@ export default function ReleaseRow({ release, selected, onSelect }) {
 
       {/* Information */}
       <div className="release-cell release-cell-info">
-        <InfoLine text={release.infoText} color={release.infoColor} />
+        <InfoLine text={release.info} color={getInfoColor(release.status, release.info)} />
       </div>
 
       {/* Actions */}

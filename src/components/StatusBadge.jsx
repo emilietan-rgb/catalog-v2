@@ -6,6 +6,7 @@ const STATUS_CONFIG = {
   action:    { label: 'Action required',bg: '#ffecef', border: '#ffd9de', color: '#e63a52' },
   sent:      { label: 'Sent to DSPs',   bg: '#e8dffe', border: '#f3efff', color: '#7a57e2' },
   takedown:  { label: 'Taken down',     bg: '#f3f4f8', border: '#ebeff5', color: '#0f1012' },
+  draft:     { label: 'Draft',          bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
 }
 
 export default function StatusBadge({ status }) {
