@@ -1,5 +1,30 @@
+import { useState, useEffect } from 'react'
 import StatusBadge from './StatusBadge'
 import './ReleaseRow.css'
+
+function ArtistDialog({ artist, label = 'artist', onClose }) {
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return (
+    <div className="rr-overlay" onMouseDown={onClose}>
+      <div className="rr-dialog" onMouseDown={e => e.stopPropagation()}>
+        <h3 className="rr-dialog-title">Open {label} page?</h3>
+        <p className="rr-dialog-body">
+          This will redirect you to the {label} page for {artist}.
+        </p>
+        <p className="rr-dialog-note">Prototype — link not active</p>
+        <div className="rr-dialog-actions">
+          <button className="rr-dialog-cancel" onClick={onClose}>Cancel</button>
+          <button className="rr-dialog-open" onClick={onClose}>Open {artist} →</button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function tooltipLabel(type, subtype) {
   if (subtype === 'Physical') return 'Physical distribution'
@@ -49,6 +74,16 @@ function InfoLine({ text, color }) {
 
 export default function ReleaseRow({ release, selected, onSelect, onOpen }) {
   const hasAction = release.status === 'action'
+  const [artistDialog, setArtistDialog] = useState(false)
+  const [accountDialog, setAccountDialog] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = () => setMenuOpen(false)
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
 
   return (
     <div className={`release-row${selected ? ' selected' : ''}${hasAction ? ' has-action' : ''}`} onClick={onOpen}>
@@ -76,13 +111,14 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen }) {
         </div>
         <div className="release-info">
           <div className="release-title-row">
-            <span className="release-type-icon">
-              <TypeIconWithTooltip type={release.type} subtype={release.subtype} />
-            </span>
+            <TypeIconWithTooltip type={release.type} subtype={release.subtype} />
             <span className="release-title">{release.title}</span>
           </div>
           <div className="release-meta">
-            <span className="release-artist">{release.artist}</span>
+            <span
+              className="release-artist"
+              onClick={e => { e.stopPropagation(); setArtistDialog(true) }}
+            >{release.artist}</span>
             <span className="meta-sep">·</span>
             <span>{release.trackCount === 0 ? '—' : `${release.trackCount} ${release.trackCount === 1 ? 'track' : 'tracks'}`}</span>
             <span className="meta-sep">·</span>
@@ -92,7 +128,12 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen }) {
       </div>
 
       {/* Account */}
-      <div className="release-cell release-cell-account">{release.account}</div>
+      <div className="release-cell release-cell-account">
+        <span
+          className="release-account"
+          onClick={e => { e.stopPropagation(); setAccountDialog(true) }}
+        >{release.account}</span>
+      </div>
 
       {/* Release date */}
       <div className="release-cell release-cell-date">
@@ -112,8 +153,23 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen }) {
 
       {/* Actions */}
       <div className="release-cell release-cell-actions">
-        <button className="row-menu-btn" onClick={e => e.stopPropagation()}>···</button>
+        <div className="row-menu-wrap" onMouseDown={e => e.stopPropagation()}>
+          <button
+            className="row-menu-btn"
+            onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
+          >···</button>
+          {menuOpen && release.status === 'delivered' && (
+            <div className="row-menu-popper">
+              <button className="row-menu-item row-menu-item--danger" onClick={e => { e.stopPropagation(); setMenuOpen(false) }}>
+                Takedown
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {artistDialog && <ArtistDialog artist={release.artist} onClose={() => setArtistDialog(false)} />}
+      {accountDialog && <ArtistDialog artist={release.account} label="account" onClose={() => setAccountDialog(false)} />}
     </div>
   )
 }

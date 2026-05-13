@@ -1,25 +1,39 @@
-import { useState } from 'react'
+import StatusBadge from './StatusBadge'
 import CompletenessBar from './CompletenessBar'
 import './DraftRow.css'
 
-function TypeIcon({ type }) {
+function TypeIconWithTooltip({ type, subtype }) {
+  if (subtype === 'Physical') return (
+    <span className="type-icon-wrap">
+      <svg className="type-icon type-icon--physical" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+      </svg>
+      <span className="type-tooltip">Physical distribution</span>
+    </span>
+  )
   if (type === 'video') return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="3" width="10" height="10" rx="1"/><path d="M12 6l3-2v8l-3-2"/></svg>
+    <span className="type-icon-wrap">
+      <svg className="type-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <rect x="2" y="3" width="10" height="10" rx="1"/><path d="M12 6l3-2v8l-3-2"/>
+      </svg>
+      <span className="type-tooltip">Video</span>
+    </span>
   )
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M9 3v7.5a2.5 2.5 0 1 1-2-2.45V3h2z"/><path d="M9 5l4 1"/></svg>
+  if (type === 'ring') return (
+    <span className="type-icon-wrap">
+      <svg className="type-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M8 2a5 5 0 0 1 5 5v2.5l1 1.5H2l1-1.5V7a5 5 0 0 1 5-5z"/>
+        <path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/>
+      </svg>
+      <span className="type-tooltip">Ringtone</span>
+    </span>
   )
+  return null
 }
 
 export default function DraftRow({ draft, selected, onSelect }) {
-  const [hovered, setHovered] = useState(false)
-
   return (
-    <div
-      className={`draft-row${selected ? ' selected' : ''}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div className={`draft-row${selected ? ' selected' : ''}`}>
       <div className="release-cell-check">
         <input
           type="checkbox"
@@ -31,41 +45,47 @@ export default function DraftRow({ draft, selected, onSelect }) {
 
       <div className="release-cell-release">
         <div className="release-cover">
-          <div className="cover-placeholder">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M9 3v7.5a2.5 2.5 0 1 1-2-2.45V3h2z"/></svg>
-          </div>
+          {draft.coverImage
+            ? <img src={draft.coverImage} alt={draft.title} width="48" height="48" />
+            : <div className="cover-placeholder">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M9 3v7.5a2.5 2.5 0 1 1-2-2.45V3h2z"/>
+                </svg>
+              </div>
+          }
         </div>
         <div className="release-info">
           <div className="release-title-row">
-            <span className="release-type-icon"><TypeIcon type={draft.type} /></span>
+            <TypeIconWithTooltip type={draft.type} subtype={draft.subtype} />
             <span className="release-title">{draft.title}</span>
-            {draft.subtype && draft.subtype !== 'Music' && (
-              <span className="subtype-badge">{draft.subtype}</span>
-            )}
           </div>
           <div className="release-meta">
-            <span>{draft.artist}</span>
+            <span className="release-artist">{draft.artist}</span>
             <span className="meta-sep">·</span>
-            <span>{draft.trackCount} {draft.trackCount === 1 ? 'track' : 'tracks'}</span>
+            <span>{draft.trackCount === 0 ? '—' : `${draft.trackCount} ${draft.trackCount === 1 ? 'track' : 'tracks'}`}</span>
             {draft.upc && <><span className="meta-sep">·</span><span className="mono release-upc">{draft.upc}</span></>}
           </div>
         </div>
       </div>
 
-      <div className="release-cell release-cell-account">{draft.account}</div>
+      <div className="release-cell release-cell-account">
+        <span className="release-account">{draft.account}</span>
+      </div>
 
       <div className="release-cell release-cell-date">
-        <span>{draft.date || '—'}</span>
+        <span>{draft.releaseDate || '—'}</span>
       </div>
 
       <div className="release-cell release-cell-status">
+        <StatusBadge status="draft" />
+      </div>
+
+      <div className="release-cell">
         <CompletenessBar pct={draft.completeness} label={draft.completenessLabel} />
       </div>
 
       <div className="release-cell release-cell-actions">
-        {hovered && (
-          <button className="row-menu-btn" onClick={e => e.stopPropagation()}>···</button>
-        )}
+        <button className="row-menu-btn" onClick={e => e.stopPropagation()}>···</button>
       </div>
     </div>
   )

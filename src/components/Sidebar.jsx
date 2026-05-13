@@ -76,18 +76,15 @@ export default function Sidebar({ activeView, onNavigate }) {
               className={`nav-sub${activeView === 'releases' ? ' active' : ''}`}
               onClick={() => onNavigate('releases')}
             >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M2 6h12M6 6v8"/></svg>
               Releases
             </button>
             <button
               className={`nav-sub${activeView === 'drafts' ? ' active' : ''}`}
               onClick={() => onNavigate('drafts')}
             >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 2h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M10 2v4h4"/></svg>
               Drafts
             </button>
             <button className="nav-sub">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="8,2 10.5,6.5 15.5,7.3 11.7,11 12.6,16 8,13.5 3.4,16 4.3,11 0.5,7.3 5.5,6.5"/></svg>
               Favorites
             </button>
           </div>

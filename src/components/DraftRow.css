@@ -1,6 +1,7 @@
 .draft-row {
+  cursor: pointer;
   display: grid;
-  grid-template-columns: 36px 2.4fr 1fr 110px 180px 40px;
+  grid-template-columns: 48px minmax(240px, 1fr) 164px 164px 164px 164px 48px;
   align-items: center;
   height: 64px;
   overflow: hidden;
