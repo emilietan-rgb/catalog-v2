@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import StatusBadge from './StatusBadge'
+import TrackManagementModal from './TrackManagementModal'
 import './ReleasePage.css'
 
 // ─── Release state derivation ────────────────────────────────────────────────
@@ -118,16 +119,19 @@ function StoreDialog({ storeName, onClose }) {
   return (
     <div className="rp-overlay" onMouseDown={onClose}>
       <div className="rp-dialog" onMouseDown={e => e.stopPropagation()}>
-        <h3 className="rp-dialog-title">Open on {storeName}?</h3>
+        <div className="rp-dialog-header">
+          <h3 className="rp-dialog-title">Open on {storeName}</h3>
+          <button className="rp-dialog-close" onClick={onClose} aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M3 3l10 10M13 3L3 13"/>
+            </svg>
+          </button>
+        </div>
         <p className="rp-dialog-body">
           This will redirect you to the release page on {storeName}.<br />
           Expected behavior: redirect to the DSP's release link.
         </p>
         <p className="rp-dialog-note">Prototype — link not active</p>
-        <div className="rp-dialog-actions">
-          <button className="rp-dialog-cancel" onClick={onClose}>Cancel</button>
-          <button className="rp-dialog-open" onClick={onClose}>Open {storeName} →</button>
-        </div>
       </div>
     </div>
   )
@@ -243,10 +247,11 @@ function DistributionTab({ releaseState }) {
 
 function TrackBadge({ status }) {
   const cfgs = {
-    live:     { bg: '#e8faef', border: '#d2f3df', color: '#189c4c', label: 'Live'     },
-    takedown: { bg: '#f3f4f8', border: '#ebeff5', color: '#3a3c42', label: 'Takedown' },
-    pending:  { bg: '#f3f4f8', border: '#ebeff5', color: '#9aa0b0', label: 'Pending'  },
-    draft:    { bg: '#f3f4f8', border: '#ebeff5', color: '#9aa0b0', label: 'Draft'    },
+    live:               { bg: '#e8faef', border: '#d2f3df', color: '#189c4c', label: 'Live'                },
+    takedown:           { bg: '#f3f4f8', border: '#ebeff5', color: '#3a3c42', label: 'Takedown'            },
+    'takedown-progress':{ bg: '#fef3c7', border: '#fde68a', color: '#b45309', label: 'Takedown in progress'},
+    pending:            { bg: '#f3f4f8', border: '#ebeff5', color: '#9aa0b0', label: 'Pending'             },
+    draft:              { bg: '#f3f4f8', border: '#ebeff5', color: '#9aa0b0', label: 'Draft'               },
   }
   const cfg = cfgs[status] || cfgs.takedown
   return (
@@ -256,9 +261,10 @@ function TrackBadge({ status }) {
   )
 }
 
-function TracksTab({ tracks, artist, trackStatusOverride }) {
+function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride }) {
   const [statuses, setStatuses] = useState(() => Object.fromEntries(tracks.map(t => [t.id, t.status])))
   const [openMenu, setOpenMenu] = useState(null)
+  const [pendingTakedown, setPendingTakedown] = useState(null)
 
   useEffect(() => {
     const handler = () => setOpenMenu(null)
@@ -266,8 +272,25 @@ function TracksTab({ tracks, artist, trackStatusOverride }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const toggle = id => { setStatuses(p => ({ ...p, [id]: p[id] === 'live' ? 'takedown' : 'live' })); setOpenMenu(null) }
+  const cancelTakedown = id => { setStatuses(p => ({ ...p, [id]: 'live' })); setOpenMenu(null) }
   const effectiveStatus = id => trackStatusOverride || statuses[id]
+
+  const openTakedownModal = t => {
+    const occurrences = t.isrc
+      ? tracks.filter(t2 => t2.isrc === t.isrc)
+      : [t]
+    setOpenMenu(null)
+    setPendingTakedown({ track: t, occurrences })
+  }
+
+  const confirmTakedown = ids => {
+    setStatuses(p => {
+      const next = { ...p }
+      ids.forEach(id => { next[id] = 'takedown-progress' })
+      return next
+    })
+    setPendingTakedown(null)
+  }
 
   return (
     <div className="rp-tab-content">
@@ -314,9 +337,9 @@ function TracksTab({ tracks, artist, trackStatusOverride }) {
                   {openMenu === t.id && (
                     <div className="rp-track-menu">
                       {statuses[t.id] === 'live' ? (
-                        <button className="rp-menu-item rp-menu-item--danger" onClick={() => toggle(t.id)}>Takedown track</button>
+                        <button className="rp-menu-item rp-menu-item--danger" onClick={() => openTakedownModal(t)}>Takedown track</button>
                       ) : (
-                        <button className="rp-menu-item" onClick={() => toggle(t.id)}>Cancel takedown</button>
+                        <button className="rp-menu-item" onClick={() => cancelTakedown(t.id)}>Cancel takedown</button>
                       )}
                       <button className="rp-menu-item" onClick={() => setOpenMenu(null)}>See distribution</button>
                     </div>
@@ -327,6 +350,16 @@ function TracksTab({ tracks, artist, trackStatusOverride }) {
           </div>
         ))}
       </div>
+      {pendingTakedown && (
+        <TrackManagementModal
+          track={pendingTakedown.track}
+          occurrences={pendingTakedown.occurrences}
+          releaseTitle={releaseTitle}
+          artist={artist}
+          onConfirm={confirmTakedown}
+          onClose={() => setPendingTakedown(null)}
+        />
+      )}
     </div>
   )
 }
@@ -418,6 +451,7 @@ function VinylIcon() {
 
 export default function ReleasePage({ release, onBack, isFavorited, onToggleFavorite }) {
   const [tab, setTab] = useState('overview')
+  const [artistDialog, setArtistDialog] = useState(false)
   const releaseState       = getReleaseState(release)
   const trackStatusOverride = TRACK_OVERRIDE[releaseState]
 
@@ -445,7 +479,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
           <div className="rp-header-info">
             <StatusBadge status={release.status} />
             <h1 className="rp-title">{release.title}</h1>
-            <p className="rp-artist-line">By {release.artist}</p>
+            <p className="rp-artist-line">By <span className="rp-artist-link" onClick={() => setArtistDialog(true)}>{release.artist}</span></p>
           </div>
         </div>
         <div className="rp-header-right">
@@ -495,9 +529,26 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
       </div>
 
       {tab === 'distribution' && <DistributionTab releaseState={releaseState} />}
-      {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} trackStatusOverride={trackStatusOverride} />}
+      {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} releaseTitle={release.title} trackStatusOverride={trackStatusOverride} />}
       {tab === 'overview'     && <OverviewTab release={release} />}
       {tab === 'rights'       && <RightsTab />}
+
+      {artistDialog && (
+        <div className="rp-overlay" onMouseDown={() => setArtistDialog(false)}>
+          <div className="rp-dialog" onMouseDown={e => e.stopPropagation()}>
+            <div className="rp-dialog-header">
+              <h3 className="rp-dialog-title">Open artist page</h3>
+              <button className="rp-dialog-close" onClick={() => setArtistDialog(false)} aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M3 3l10 10M13 3L3 13"/>
+                </svg>
+              </button>
+            </div>
+            <p className="rp-dialog-body">This will redirect you to the artist page for {release.artist}.</p>
+            <p className="rp-dialog-note">Prototype — link not active</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
