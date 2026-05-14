@@ -2,6 +2,25 @@ import { RELEASES } from '../data/catalog'
 import StatusBadge from './StatusBadge'
 import './FavoritesView.css'
 
+function TypeIcon({ type, subtype }) {
+  if (subtype === 'Physical') return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ color: '#ff852f', flexShrink: 0 }}>
+      <circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
+    </svg>
+  )
+  if (type === 'video') return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ color: '#9aa0b0', flexShrink: 0 }}>
+      <rect x="2" y="3" width="10" height="10" rx="1"/><path d="M12 6l3-2v8l-3-2"/>
+    </svg>
+  )
+  if (type === 'ring') return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ color: '#9aa0b0', flexShrink: 0 }}>
+      <path d="M8 2a5 5 0 0 1 5 5v2.5l1 1.5H2l1-1.5V7a5 5 0 0 1 5-5z"/><path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/>
+    </svg>
+  )
+  return null
+}
+
 function HeartFilledIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -60,7 +79,10 @@ export default function FavoritesView({ favorites = [], onToggleFavorite, onOpen
               </button>
             </div>
             <div className="fav-card-info">
-              <span className="fav-card-title">{r.title}</span>
+              <span className="fav-card-title-row">
+                <TypeIcon type={r.type} subtype={r.subtype} />
+                <span className="fav-card-title">{r.title}</span>
+              </span>
               <span className="fav-card-artist">{r.artist}</span>
               <StatusBadge status={r.status} />
             </div>

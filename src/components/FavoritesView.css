@@ -93,6 +93,11 @@
   gap: 3px;
   padding: 0 2px;
 }
+.fav-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 .fav-card-title {
   font-size: 13px;
   font-weight: 600;
