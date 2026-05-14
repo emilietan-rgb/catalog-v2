@@ -450,6 +450,7 @@ function StatusBlock({ releaseState, release, effectiveTracklist }) {
 
   return (
     <div className="rp-status-block">
+      <span className="rp-status-heading">Release status</span>
       <StatusBadge status={badgeStatus} />
       {context && <p className="rp-status-context" style={contextColor ? { color: contextColor } : undefined}>{context}</p>}
       {secondLine && <p className="rp-status-line" style={{ color: secondLine.color }}>{secondLine.text}</p>}
