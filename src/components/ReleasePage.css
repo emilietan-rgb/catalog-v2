@@ -440,7 +440,7 @@
 .rp-tracks-header,
 .rp-track-row {
   display: grid;
-  grid-template-columns: 36px 40px 2fr 1fr 140px 72px 170px 1fr 48px;
+  grid-template-columns: 36px 40px 2fr 1fr 140px 72px 1fr 48px;
   align-items: center;
   padding: 0 16px;
   gap: 0;

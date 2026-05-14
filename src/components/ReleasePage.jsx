@@ -306,7 +306,6 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
           <span className="rp-th">Artist</span>
           <span className="rp-th">ISRC</span>
           <span className="rp-th">Duration</span>
-          <span className="rp-th">Status</span>
           <span className="rp-th rp-th--reason">Reason</span>
           <span className="rp-th"></span>
         </div>
@@ -355,7 +354,6 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
               <span className="rp-td rp-td--muted">—</span>
             )}
             <span className="rp-td rp-td--muted">{t.duration}</span>
-            <span className="rp-td"><TrackBadge status={effectiveStatus(t.id)} /></span>
             <span className="rp-td rp-td--reason">{t.takedownReason || ''}</span>
             <span className="rp-td rp-td--actions">
               {!trackStatusOverride && (
