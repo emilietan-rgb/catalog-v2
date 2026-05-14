@@ -573,6 +573,36 @@
 .rp-menu-item--danger { color: #e63a52; }
 .rp-menu-item--danger:hover { background: #fff5f6; color: #e63a52; }
 
+/* Status block */
+.rp-status-block {
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 8px;
+  padding: 20px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.rp-status-context {
+  font-size: 13px;
+  color: #0f1012;
+  margin: 0;
+}
+.rp-status-line {
+  font-size: 13px;
+  margin: 0;
+}
+.rp-status-date {
+  font-size: 12px;
+}
+
+/* Header UPC */
+.rp-header-upc {
+  font-size: 12px;
+  color: #9aa0b0;
+}
+
 /* Overview */
 .rp-overview-grid {
   display: grid;

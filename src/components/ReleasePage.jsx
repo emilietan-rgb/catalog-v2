@@ -368,6 +368,96 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
   )
 }
 
+// ─── Status block ─────────────────────────────────────────────────────────────
+
+function StatusBlock({ releaseState, release, effectiveTracklist }) {
+  const TODAY = new Date(2026, 4, 13)
+
+  const parseDD = str => {
+    if (!str || str === '—') return null
+    const [d, m, y] = str.split('/')
+    return d && m && y ? new Date(+y, +m - 1, +d) : null
+  }
+
+  const urgency = dateStr => {
+    const dt = parseDD(dateStr)
+    if (!dt) return null
+    const days = Math.ceil((dt - TODAY) / 86400000)
+    if (days < 0) return { text: 'Release date passed', color: '#e63a52' }
+    const label = days === 0 ? 'today' : `in ${days} day${days !== 1 ? 's' : ''}`
+    const warn  = days <= 3 ? ' ⚠' : ''
+    const color = days <= 3 ? '#e63a52' : days <= 14 ? '#b45309' : '#9aa0b0'
+    return { text: `${dateStr} · ${label}${warn}`, color }
+  }
+
+  const progressCount  = effectiveTracklist.filter(t => t.status === 'takedown-progress').length
+  const takenDownCount = effectiveTracklist.filter(t => t.status === 'takedown').length
+
+  let badgeStatus, context, contextColor = null, secondLine = null, dateLine = null
+
+  switch (releaseState) {
+    case 'draft':
+      badgeStatus = 'draft'
+      context = 'In progress'
+      dateLine = urgency(release.releaseDate)
+      break
+    case 'review':
+      badgeStatus = 'review'
+      context = release.info || 'Under review'
+      dateLine = urgency(release.releaseDate)
+      break
+    case 'action':
+      badgeStatus = 'action'
+      context = release.info || 'Action required'
+      dateLine = urgency(release.releaseDate)
+      break
+    case 'sent':
+      badgeStatus = 'sent'
+      context = `Scheduled · ${release.releaseDate || '—'}`
+      dateLine = urgency(release.releaseDate)
+      break
+    case 'delivered':
+      badgeStatus = 'delivered'
+      context = `Live since ${release.releaseDate || '—'}`
+      break
+    case 'delivered_partial':
+      badgeStatus = 'delivered'
+      context = `Live since ${release.releaseDate || '—'}`
+      secondLine = progressCount > 0
+        ? { text: `Removing ${progressCount} track${progressCount !== 1 ? 's' : ''}`, color: '#b45309' }
+        : takenDownCount > 0
+          ? { text: `${takenDownCount} track${takenDownCount !== 1 ? 's' : ''} removed`, color: '#b45309' }
+          : null
+      break
+    case 'tracks_all_takedown':
+    case 'takedown_progress':
+      badgeStatus = 'takedown'
+      context = 'In progress'
+      contextColor = '#b45309'
+      break
+    case 'takedown_done': {
+      badgeStatus = 'takedown'
+      context = release.info || 'Removed'
+      const removedStr = release.info?.startsWith('Removed ') ? release.info.replace('Removed ', '') : null
+      if (release.releaseDate && removedStr)
+        secondLine = { text: `Was live ${release.releaseDate} → ${removedStr}`, color: '#9aa0b0' }
+      break
+    }
+    default:
+      badgeStatus = release.status
+      context = release.info || ''
+  }
+
+  return (
+    <div className="rp-status-block">
+      <StatusBadge status={badgeStatus} />
+      {context && <p className="rp-status-context" style={contextColor ? { color: contextColor } : undefined}>{context}</p>}
+      {secondLine && <p className="rp-status-line" style={{ color: secondLine.color }}>{secondLine.text}</p>}
+      {dateLine   && <p className="rp-status-line rp-status-date" style={{ color: dateLine.color }}>{dateLine.text}</p>}
+    </div>
+  )
+}
+
 // ─── Overview tab ─────────────────────────────────────────────────────────────
 
 function InfoRow({ label, value }) {
@@ -379,30 +469,33 @@ function InfoRow({ label, value }) {
   )
 }
 
-function OverviewTab({ release }) {
+function OverviewTab({ release, releaseState, effectiveTracklist }) {
   return (
-    <div className="rp-tab-content rp-overview-grid">
-      <div className="rp-overview-card">
-        <span className="rp-card-heading">Release info</span>
-        <InfoRow label="Label"               value={release.account || '—'} />
-        <InfoRow label="UPC"                 value={release.upc || '—'} />
-        <InfoRow label="Genre"               value="Electronic / Dance" />
-        <InfoRow label="Explicit lyrics"     value="No" />
-        <InfoRow label="Release date"        value={release.releaseDate || '—'} />
-        <InfoRow label="Distribution"        value={release.subtype === 'Physical' ? 'Physical' : 'Digital'} />
-        <InfoRow label="Territories"         value="Worldwide" />
-        <InfoRow label="Price tier"          value="Standard" />
-        <InfoRow label="Allow download"      value="Yes" />
-        <InfoRow label="YT reference match"  value="Yes" />
-        <InfoRow label="FB reference match"  value="Yes" />
-      </div>
-      <div className="rp-overview-card">
-        <span className="rp-card-heading">Rights & credits</span>
-        <InfoRow label="© Copyright"     value={`${release.account || '—'}, 2026`} />
-        <InfoRow label="℗ Producer"      value={release.artist || '—'} />
-        <InfoRow label="Production year" value="2026" />
-        <InfoRow label="Composer"        value="Alexis Dubois" />
-        <InfoRow label="Author"          value="Alexis Dubois" />
+    <div className="rp-tab-content">
+      <StatusBlock releaseState={releaseState} release={release} effectiveTracklist={effectiveTracklist} />
+      <div className="rp-overview-grid">
+        <div className="rp-overview-card">
+          <span className="rp-card-heading">Release info</span>
+          <InfoRow label="Label"               value={release.account || '—'} />
+          <InfoRow label="UPC"                 value={release.upc || '—'} />
+          <InfoRow label="Genre"               value="Electronic / Dance" />
+          <InfoRow label="Explicit lyrics"     value="No" />
+          <InfoRow label="Release date"        value={release.releaseDate || '—'} />
+          <InfoRow label="Distribution"        value={release.subtype === 'Physical' ? 'Physical' : 'Digital'} />
+          <InfoRow label="Territories"         value="Worldwide" />
+          <InfoRow label="Price tier"          value="Standard" />
+          <InfoRow label="Allow download"      value="Yes" />
+          <InfoRow label="YT reference match"  value="Yes" />
+          <InfoRow label="FB reference match"  value="Yes" />
+        </div>
+        <div className="rp-overview-card">
+          <span className="rp-card-heading">Rights & credits</span>
+          <InfoRow label="© Copyright"     value={`${release.account || '—'}, 2026`} />
+          <InfoRow label="℗ Producer"      value={release.artist || '—'} />
+          <InfoRow label="Production year" value="2026" />
+          <InfoRow label="Composer"        value="Alexis Dubois" />
+          <InfoRow label="Author"          value="Alexis Dubois" />
+        </div>
       </div>
     </div>
   )
@@ -422,48 +515,12 @@ function RightsTab() {
   )
 }
 
-// ─── Header type/distribution icons ──────────────────────────────────────────
-
-function VideoIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <rect x="2" y="3" width="10" height="10" rx="1"/>
-      <path d="M12 6l3-2v8l-3-2"/>
-    </svg>
-  )
-}
-
-function RingtoneIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-      <path d="M8 2a5 5 0 0 1 5 5v2.5l1 1.5H2l1-1.5V7a5 5 0 0 1 5-5z"/>
-      <path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/>
-    </svg>
-  )
-}
-
-function VinylIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ color: '#ff852f' }}>
-      <circle cx="8" cy="8" r="6"/>
-      <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/>
-    </svg>
-  )
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function ReleasePage({ release, onBack, isFavorited, onToggleFavorite, trackOverrides = {}, onTrackStatusChange }) {
   const [tab, setTab] = useState('overview')
   const [artistDialog, setArtistDialog] = useState(false)
   const [releaseTakedownModal, setReleaseTakedownModal] = useState(false)
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
-
-  useEffect(() => {
-    const handler = () => setMoreMenuOpen(false)
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
 
   const releaseOverrides = trackOverrides[release.id] || {}
   const effectiveTracklist = (release.tracklist || []).map(t => ({
@@ -472,21 +529,15 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
   const allTakenDown = effectiveTracklist.length > 0 &&
     effectiveTracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown')
 
-  const effectiveRelease   = { ...release, tracklist: effectiveTracklist }
-  const releaseState       = getReleaseState(effectiveRelease)
+  const effectiveRelease    = { ...release, tracklist: effectiveTracklist }
+  const releaseState        = getReleaseState(effectiveRelease)
   const trackStatusOverride = TRACK_OVERRIDE[releaseState]
-  const headerStatus       = allTakenDown ? 'takedown' : release.status
 
   const trackStatuses = Object.fromEntries(
     (release.tracklist || []).map(t => [t.id, releaseOverrides[t.id] ?? t.status])
   )
   const handleConfirmTakedown = ids => onTrackStatusChange?.(release.id, ids, 'takedown-progress')
   const handleCancelTakedown  = id  => onTrackStatusChange?.(release.id, [id], 'live')
-
-  const typeLabel = release.type === 'video' ? 'Video' : release.type === 'ring' ? 'Ringtone' : 'Audio'
-  const typeIcon  = release.type === 'video' ? <VideoIcon /> : release.type === 'ring' ? <RingtoneIcon /> : null
-  const distLabel = release.subtype === 'Physical' ? 'Physical distribution' : 'Digital'
-  const distIcon  = release.subtype === 'Physical' ? <VinylIcon /> : null
 
   return (
     <div className="rp-container">
@@ -505,52 +556,28 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
               : <div className="rp-cover-placeholder" />}
           </div>
           <div className="rp-header-info">
-            <StatusBadge status={headerStatus} />
             <h1 className="rp-title">{release.title}</h1>
             <p className="rp-artist-line">By <span className="rp-artist-link" onClick={() => setArtistDialog(true)}>{release.artist}</span></p>
+            <span className="rp-header-upc mono">{release.upc || '—'}</span>
           </div>
         </div>
-        <div className="rp-header-right">
-          <div className="rp-detail-col">
-            <span className="rp-detail-label">UPC</span>
-            <span className="rp-detail-value mono">{release.upc || '—'}</span>
-          </div>
-          <div className="rp-detail-col">
-            <span className="rp-detail-label">Product type</span>
-            <span className="rp-detail-value rp-detail-with-icon">{typeIcon}{typeLabel}</span>
-          </div>
-          <div className="rp-detail-col">
-            <span className="rp-detail-label">Distribution</span>
-            <span className="rp-detail-value rp-detail-with-icon">{distIcon}{distLabel}</span>
-          </div>
-          <div className="rp-header-actions">
-            <button
-              className={`rp-action-btn rp-heart-btn${isFavorited ? ' rp-heart-btn--active' : ''}`}
-              onClick={onToggleFavorite}
-              title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              <svg width="15" height="15" viewBox="0 0 16 16" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 13.5S2 9.3 2 5.5a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 14 5.5c0 3.8-6 8-6 8z"/>
-              </svg>
+        <div className="rp-header-actions">
+          <button
+            className={`rp-action-btn rp-heart-btn${isFavorited ? ' rp-heart-btn--active' : ''}`}
+            onClick={onToggleFavorite}
+            title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            <svg width="15" height="15" viewBox="0 0 16 16" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 13.5S2 9.3 2 5.5a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 14 5.5c0 3.8-6 8-6 8z"/>
+            </svg>
+          </button>
+          <button className="rp-action-btn">Edit release</button>
+          {release.status === 'delivered' && !allTakenDown && (
+            <button className="rp-action-btn rp-action-btn--danger" onClick={() => setReleaseTakedownModal(true)}>
+              Takedown release
             </button>
-            <button className="rp-action-btn">Edit</button>
-            <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
-              <button
-                className="rp-action-btn rp-action-btn--more"
-                onClick={() => setMoreMenuOpen(o => !o)}
-              >···</button>
-              {moreMenuOpen && release.status === 'delivered' && !allTakenDown && (
-                <div className="rp-track-menu" style={{ minWidth: 160 }}>
-                  <button
-                    className="rp-menu-item rp-menu-item--danger"
-                    onMouseDown={() => { setMoreMenuOpen(false); setReleaseTakedownModal(true) }}
-                  >
-                    Takedown release
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
+          <button className="rp-action-btn rp-action-btn--more">···</button>
         </div>
       </div>
 
@@ -573,7 +600,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
 
       {tab === 'distribution' && <DistributionTab releaseState={releaseState} />}
       {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} releaseTitle={release.title} trackStatusOverride={trackStatusOverride} statuses={trackStatuses} onConfirmTakedown={handleConfirmTakedown} onCancelTakedown={handleCancelTakedown} />}
-      {tab === 'overview'     && <OverviewTab release={release} />}
+      {tab === 'overview'     && <OverviewTab release={release} releaseState={releaseState} effectiveTracklist={effectiveTracklist} />}
       {tab === 'rights'       && <RightsTab />}
 
       {artistDialog && (
