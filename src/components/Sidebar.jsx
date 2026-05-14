@@ -111,10 +111,10 @@ export default function Sidebar({ activeView, onNavigate, favoritesCount = 0 }) 
       </nav>
 
       <div className="sidebar-user">
-        <div className="user-avatar">ET</div>
+        <div className="user-avatar">JD</div>
         <div className="user-info">
-          <div className="user-name">Emilie Tan</div>
-          <div className="user-email">emilie.tan@believe.com</div>
+          <div className="user-name">John Doe</div>
+          <div className="user-email">usertest@mail.com</div>
         </div>
       </div>
     </aside>

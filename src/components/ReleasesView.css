@@ -113,7 +113,7 @@
 
 .list-table-header {
   display: grid;
-  grid-template-columns: 48px minmax(240px, 1fr) 164px 164px 164px 164px 48px;
+  grid-template-columns: 32px 3fr 1fr 100px 130px 180px 40px;
   align-items: center;
   padding: 0 16px;
   height: 36px;
@@ -128,3 +128,12 @@
 }
 
 .list-rows { display: flex; flex-direction: column; }
+.list-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px 0;
+  font-size: 13px;
+  color: #9aa0b0;
+}

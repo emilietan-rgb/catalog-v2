@@ -1,10 +1,9 @@
 .release-row {
   cursor: pointer;
   display: grid;
-  grid-template-columns: 48px minmax(240px, 1fr) 164px 164px 164px 164px 48px;
+  grid-template-columns: 32px 3fr 1fr 100px 130px 180px 40px;
   align-items: center;
   height: 64px;
-  overflow: hidden;
   padding: 0 16px;
   border-bottom: 1px solid rgba(0,0,0,0.04);
   background: #fff;
@@ -36,7 +35,7 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
-  padding-right: 12px;
+  padding-right: 16px;
 }
 
 .release-cover { flex-shrink: 0; }
@@ -143,11 +142,12 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  padding-right: 16px;
 }
 .release-cell-account { font-size: 14px; color: #27282c; overflow: hidden; }
 .release-account { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 .release-account:hover { text-decoration: underline; }
-.release-cell-date   { font-size: 14px; color: #27282c; }
+.release-cell-date   { font-size: 12px; color: #27282c; }
 .release-time        { font-size: 10px; color: #9aa0b0; font-family: 'Geist Mono', monospace; }
 .release-cell-status { flex-direction: column; gap: 3px; align-items: flex-start; }
 
@@ -225,12 +225,34 @@
   width: 360px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.16);
 }
+.rr-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
 .rr-dialog-title {
   font-size: 15px;
   font-weight: 600;
   color: #0f1012;
-  margin: 0 0 8px;
+  margin: 0;
 }
+.rr-dialog-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9aa0b0;
+  border-radius: 4px;
+  padding: 0;
+}
+.rr-dialog-close:hover { background: #f3f4f8; color: #0f1012; }
 .rr-dialog-body {
   font-size: 13px;
   color: #5a6070;
@@ -242,30 +264,3 @@
   color: #9aa0b0;
   margin: 0 0 20px;
 }
-.rr-dialog-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-.rr-dialog-cancel {
-  height: 32px;
-  padding: 0 14px;
-  border: 1px solid #e5e7ef;
-  border-radius: 6px;
-  background: #fff;
-  font-size: 13px;
-  cursor: pointer;
-  color: #0f1012;
-}
-.rr-dialog-cancel:hover { background: #f3f4f8; }
-.rr-dialog-open {
-  height: 32px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 6px;
-  background: #0f1012;
-  color: #fff;
-  font-size: 13px;
-  cursor: pointer;
-}
-.rr-dialog-open:hover { background: #27282c; }
