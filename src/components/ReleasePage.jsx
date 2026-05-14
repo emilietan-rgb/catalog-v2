@@ -12,19 +12,26 @@ function getReleaseState(release) {
   if (status === 'sent')      return 'sent'
   if (status === 'action')    return 'action'
   if (status === 'takedown')  return info === 'In progress' ? 'takedown_progress' : 'takedown_done'
-  if (status === 'delivered') return tracklist.some(t => t.status === 'takedown') ? 'delivered_partial' : 'delivered'
+  if (status === 'delivered') {
+    if (tracklist.length > 0 && tracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown'))
+      return 'tracks_all_takedown'
+    return tracklist.some(t => t.status === 'takedown' || t.status === 'takedown-progress')
+      ? 'delivered_partial'
+      : 'delivered'
+  }
   return 'delivered'
 }
 
 const TRACK_OVERRIDE = {
-  draft:             'draft',
-  review:            'pending',
-  sent:              'pending',
-  action:            'pending',
-  takedown_progress: 'takedown',
-  takedown_done:     'takedown',
-  delivered:         null,
-  delivered_partial: null,
+  draft:               'draft',
+  review:              'pending',
+  sent:                'pending',
+  action:              'pending',
+  takedown_progress:   'takedown',
+  takedown_done:       'takedown',
+  delivered:           null,
+  delivered_partial:   null,
+  tracks_all_takedown: null,
 }
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -261,8 +268,7 @@ function TrackBadge({ status }) {
   )
 }
 
-function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride }) {
-  const [statuses, setStatuses] = useState(() => Object.fromEntries(tracks.map(t => [t.id, t.status])))
+function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses, onConfirmTakedown, onCancelTakedown }) {
   const [openMenu, setOpenMenu] = useState(null)
   const [pendingTakedown, setPendingTakedown] = useState(null)
 
@@ -272,7 +278,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const cancelTakedown = id => { setStatuses(p => ({ ...p, [id]: 'live' })); setOpenMenu(null) }
+  const cancelTakedown = id => { onCancelTakedown(id); setOpenMenu(null) }
   const effectiveStatus = id => trackStatusOverride || statuses[id]
 
   const openTakedownModal = t => {
@@ -284,11 +290,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride }) {
   }
 
   const confirmTakedown = ids => {
-    setStatuses(p => {
-      const next = { ...p }
-      ids.forEach(id => { next[id] = 'takedown-progress' })
-      return next
-    })
+    onConfirmTakedown(ids)
     setPendingTakedown(null)
   }
 
@@ -451,11 +453,27 @@ function VinylIcon() {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function ReleasePage({ release, onBack, isFavorited, onToggleFavorite }) {
+export default function ReleasePage({ release, onBack, isFavorited, onToggleFavorite, trackOverrides = {}, onTrackStatusChange }) {
   const [tab, setTab] = useState('overview')
   const [artistDialog, setArtistDialog] = useState(false)
-  const releaseState       = getReleaseState(release)
+
+  const releaseOverrides = trackOverrides[release.id] || {}
+  const effectiveTracklist = (release.tracklist || []).map(t => ({
+    ...t, status: releaseOverrides[t.id] ?? t.status
+  }))
+  const allTakenDown = effectiveTracklist.length > 0 &&
+    effectiveTracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown')
+
+  const effectiveRelease   = { ...release, tracklist: effectiveTracklist }
+  const releaseState       = getReleaseState(effectiveRelease)
   const trackStatusOverride = TRACK_OVERRIDE[releaseState]
+  const headerStatus       = allTakenDown ? 'takedown' : release.status
+
+  const trackStatuses = Object.fromEntries(
+    (release.tracklist || []).map(t => [t.id, releaseOverrides[t.id] ?? t.status])
+  )
+  const handleConfirmTakedown = ids => onTrackStatusChange?.(release.id, ids, 'takedown-progress')
+  const handleCancelTakedown  = id  => onTrackStatusChange?.(release.id, [id], 'live')
 
   const typeLabel = release.type === 'video' ? 'Video' : release.type === 'ring' ? 'Ringtone' : 'Audio'
   const typeIcon  = release.type === 'video' ? <VideoIcon /> : release.type === 'ring' ? <RingtoneIcon /> : null
@@ -479,7 +497,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
               : <div className="rp-cover-placeholder" />}
           </div>
           <div className="rp-header-info">
-            <StatusBadge status={release.status} />
+            <StatusBadge status={headerStatus} />
             <h1 className="rp-title">{release.title}</h1>
             <p className="rp-artist-line">By <span className="rp-artist-link" onClick={() => setArtistDialog(true)}>{release.artist}</span></p>
           </div>
@@ -531,7 +549,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
       </div>
 
       {tab === 'distribution' && <DistributionTab releaseState={releaseState} />}
-      {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} releaseTitle={release.title} trackStatusOverride={trackStatusOverride} />}
+      {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} releaseTitle={release.title} trackStatusOverride={trackStatusOverride} statuses={trackStatuses} onConfirmTakedown={handleConfirmTakedown} onCancelTakedown={handleCancelTakedown} />}
       {tab === 'overview'     && <OverviewTab release={release} />}
       {tab === 'rights'       && <RightsTab />}
 

@@ -61,13 +61,47 @@ function Toolbar({ search, onSearch, filters, onFilter }) {
   )
 }
 
-export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFavorite }) {
+export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFavorite, trackOverrides = {} }) {
   const [selected, setSelected] = useState(new Set())
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [filters, setFilters] = useState({ account: [], artist: [], status: [], date: null })
 
   const handleFilter = (key, value) => { setFilters(f => ({ ...f, [key]: value })); setPage(1) }
+
+  const parseDate = str => {
+    if (!str || str === '—') return null
+    const [d, m, y] = str.split('/')
+    return new Date(+y, +m - 1, +d)
+  }
+
+  const matchesDateFilter = (releaseDate, filter) => {
+    if (!filter) return true
+    const date = parseDate(releaseDate)
+    if (!date) return false
+    const now = new Date()
+    if (filter === 'This week') {
+      const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0,0,0,0)
+      const sun = new Date(mon); sun.setDate(mon.getDate() + 6); sun.setHours(23,59,59,999)
+      return date >= mon && date <= sun
+    }
+    if (filter === 'This month')
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+    if (filter === 'Last 3 months') {
+      const from = new Date(now); from.setMonth(now.getMonth() - 3)
+      return date >= from && date <= now
+    }
+    if (filter === 'This year')
+      return date.getFullYear() === now.getFullYear()
+    if (filter.includes('→')) {
+      const [fromStr, toStr] = filter.split('→').map(s => s.trim())
+      const from = parseDate(fromStr); const to = parseDate(toStr)
+      if (!from || !to) return true
+      to.setHours(23,59,59,999)
+      return date >= from && date <= to
+    }
+    return true
+  }
 
   const filtered = RELEASES.filter(r => {
     if (search) {
@@ -81,7 +115,15 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
     if (filters.account.length && !filters.account.includes(r.account)) return false
     if (filters.artist.length  && !filters.artist.includes(r.artist))   return false
     if (filters.status.length  && !filters.status.includes(STATUS_LABEL_MAP[r.status])) return false
+    if (!matchesDateFilter(r.releaseDate, filters.date)) return false
     return true
+  }).sort((a, b) => {
+    const da = parseDate(a.releaseDate)
+    const db = parseDate(b.releaseDate)
+    if (!da && !db) return 0
+    if (!da) return 1
+    if (!db) return -1
+    return db - da
   })
 
   const pageRows = filtered.slice((page - 1) * 10, page * 10)
@@ -130,27 +172,43 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
 
       <div className="list-container">
         <div className="list-table-header">
-          <div style={{width: 48}}></div>
-          <div className="th" style={{flex:'2'}}>Releases ({filtered.length})</div>
-          <div className="th" style={{width:164}}>Account</div>
-          <div className="th" style={{width:164}}>Release date</div>
-          <div className="th" style={{width:164}}>Status</div>
-          <div className="th" style={{flex:'1'}}>Information</div>
-          <div style={{width:48}}></div>
+          <div></div>
+          <div className="th">Releases ({filtered.length})</div>
+          <div className="th">Account</div>
+          <div className="th">Release date</div>
+          <div className="th">Status</div>
+          <div className="th">Information</div>
+          <div></div>
         </div>
 
         <div className="list-rows">
-          {pageRows.map(r => (
-            <ReleaseRow
-              key={r.id}
-              release={r}
-              selected={selected.has(r.id)}
-              onSelect={checked => toggleSelect(r.id, checked)}
-              onOpen={() => onOpenRelease?.(r)}
-              isFavorited={favorites.includes(r.id)}
-              onToggleFavorite={() => onToggleFavorite?.(r.id)}
-            />
-          ))}
+          {filtered.length === 0 ? (
+            <div className="list-empty">
+              <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" style={{ color: '#cdd3e2' }}>
+                <circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/>
+              </svg>
+              <span>No releases match your filters</span>
+            </div>
+          ) : (
+            pageRows.map(r => {
+              const overrides = trackOverrides[r.id] || {}
+              const effectiveRelease = Object.keys(overrides).length === 0 ? r : {
+                ...r,
+                tracklist: (r.tracklist || []).map(t => ({ ...t, status: overrides[t.id] ?? t.status }))
+              }
+              return (
+                <ReleaseRow
+                  key={r.id}
+                  release={effectiveRelease}
+                  selected={selected.has(r.id)}
+                  onSelect={checked => toggleSelect(r.id, checked)}
+                  onOpen={() => onOpenRelease?.(r)}
+                  isFavorited={favorites.includes(r.id)}
+                  onToggleFavorite={() => onToggleFavorite?.(r.id)}
+                />
+              )
+            })
+          )}
         </div>
 
         <Pagination page={page} rowsPerPage={10} total={filtered.length} onPage={setPage} />

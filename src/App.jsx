@@ -14,12 +14,22 @@ export default function App() {
   const [activeView, setActiveView]   = useState('releases')
   const [openRelease, setOpenRelease] = useState(null)
   const [favorites, setFavorites]     = useState(loadFavorites)
+  const [trackOverrides, setTrackOverrides] = useState({})
 
   const toggleFavorite = id => {
     setFavorites(prev => {
       const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
       localStorage.setItem('favorites', JSON.stringify(next))
       return next
+    })
+  }
+
+  const updateTrackStatuses = (releaseId, ids, status) => {
+    setTrackOverrides(prev => {
+      const current = prev[releaseId] || {}
+      const next = { ...current }
+      ids.forEach(id => { next[id] = status })
+      return { ...prev, [releaseId]: next }
     })
   }
 
@@ -39,10 +49,12 @@ export default function App() {
             onBack={() => setOpenRelease(null)}
             isFavorited={favorites.includes(openRelease.id)}
             onToggleFavorite={() => toggleFavorite(openRelease.id)}
+            trackOverrides={trackOverrides}
+            onTrackStatusChange={updateTrackStatuses}
           />
         ) : (
           <>
-            {activeView === 'releases'  && <ReleasesView onOpenRelease={setOpenRelease} favorites={favorites} onToggleFavorite={toggleFavorite} />}
+            {activeView === 'releases'  && <ReleasesView onOpenRelease={setOpenRelease} favorites={favorites} onToggleFavorite={toggleFavorite} trackOverrides={trackOverrides} />}
             {activeView === 'drafts'    && <DraftsView />}
             {activeView === 'favorites' && <FavoritesView favorites={favorites} onToggleFavorite={toggleFavorite} onOpenRelease={r => setOpenRelease(r)} />}
           </>

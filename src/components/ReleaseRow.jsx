@@ -63,9 +63,19 @@ function TypeIconWithTooltip({ type, subtype }) {
   )
 }
 
+function getDerivedStatus(release) {
+  if (release.status !== 'delivered') return release.status
+  const tracklist = release.tracklist
+  if (!tracklist || !tracklist.length) return release.status
+  const allTakenDown = tracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown')
+  return allTakenDown ? 'takedown' : release.status
+}
+
 function getTrackDerivedInfo(release) {
   const tracklist = release.tracklist
   if (!tracklist || !tracklist.length) return null
+  const allTakenDown = tracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown')
+  if (allTakenDown) return { text: 'In progress', color: '#b45309' }
   const progressCount = tracklist.filter(t => t.status === 'takedown-progress').length
   if (progressCount > 0) {
     return { text: `Removing ${progressCount} ${progressCount === 1 ? 'track' : 'tracks'}`, color: '#b45309' }
@@ -91,6 +101,7 @@ function InfoLine({ text, color }) {
 
 
 export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavorited, onToggleFavorite }) {
+  const derivedStatus = getDerivedStatus(release)
   const hasAction = release.status === 'action'
   const [artistDialog, setArtistDialog] = useState(false)
   const [accountDialog, setAccountDialog] = useState(false)
@@ -153,7 +164,7 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
 
       {/* Status */}
       <div className="release-cell release-cell-status">
-        <StatusBadge status={release.status} />
+        <StatusBadge status={derivedStatus} />
       </div>
 
       {/* Information */}
@@ -162,7 +173,7 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
           const derived = getTrackDerivedInfo(release)
           return derived
             ? <InfoLine text={derived.text} color={derived.color} />
-            : <InfoLine text={release.info} color={getInfoColor(release.status, release.info)} />
+            : <InfoLine text={release.info} color={getInfoColor(derivedStatus, release.info)} />
         })()}
       </div>
 
