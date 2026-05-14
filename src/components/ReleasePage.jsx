@@ -310,7 +310,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
           <span className="rp-th rp-th--reason">Reason</span>
           <span className="rp-th"></span>
         </div>
-        {tracks.map(t => {
+        {tracks.map((t, idx) => {
           const isPlaying = playingId === t.id
           return (
           <div key={t.id} className={`rp-track-row${isPlaying ? ' rp-track-row--playing' : ''}`}>
@@ -329,7 +329,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
             <span className="rp-td rp-td--muted">
               {isPlaying
                 ? <span className="rp-eq-bars"><span className="rp-eq-bar"/><span className="rp-eq-bar"/><span className="rp-eq-bar"/><span className="rp-eq-bar"/></span>
-                : t.num
+                : idx + 1
               }
             </span>
             <span className="rp-td rp-track-title">
