@@ -83,6 +83,7 @@
   opacity: 0;
   transition: opacity 0.1s;
 }
+.fav-card-heart { opacity: 1; }
 .fav-card:hover .fav-card-heart { opacity: 1; }
 
 .fav-card-info {

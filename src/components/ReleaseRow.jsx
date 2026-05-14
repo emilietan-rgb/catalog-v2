@@ -72,11 +72,6 @@ function InfoLine({ text, color }) {
   return <span className="release-info-line" style={{ color: color || '#9aa0b0' }}>{text}</span>
 }
 
-const HeartIcon = ({ filled }) => (
-  <svg width="12" height="12" viewBox="0 0 16 16" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 13.5S2 9.3 2 5.5a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 14 5.5c0 3.8-6 8-6 8z"/>
-  </svg>
-)
 
 export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavorited, onToggleFavorite }) {
   const hasAction = release.status === 'action'
@@ -114,12 +109,6 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
                 </svg>
               </div>
           }
-          <button
-            className={`cover-heart${isFavorited ? ' cover-heart--active' : ''}`}
-            onClick={e => { e.stopPropagation(); onToggleFavorite?.() }}
-          >
-            <HeartIcon filled={isFavorited} />
-          </button>
         </div>
         <div className="release-info">
           <div className="release-title-row">
@@ -170,10 +159,10 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
             className="row-menu-btn"
             onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
           >···</button>
-          {menuOpen && release.status === 'delivered' && (
+          {menuOpen && (
             <div className="row-menu-popper">
-              <button className="row-menu-item row-menu-item--danger" onClick={e => { e.stopPropagation(); setMenuOpen(false) }}>
-                Takedown
+              <button className="row-menu-item" onClick={e => { e.stopPropagation(); onToggleFavorite?.(); setMenuOpen(false) }}>
+                {isFavorited ? 'Remove from favorites' : 'Add to favorites'}
               </button>
             </div>
           )}

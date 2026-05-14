@@ -97,18 +97,23 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
   const clearSelection = () => setSelected(new Set())
 
   const ACTIONS_BY_STATUS = {
-    delivered: ['Export CSV', 'Request takedown'],
-    review:    ['Export CSV', 'Cancel submission'],
-    sent:      ['Export CSV', 'Cancel delivery'],
-    action:    ['Export CSV', 'View issues'],
-    takedown:  ['Export CSV', 'Restore'],
+    delivered: ['Export CSV', 'Add to favorites'],
+    review:    ['Export CSV', 'Add to favorites', 'Cancel submission'],
+    sent:      ['Export CSV', 'Add to favorites', 'Cancel delivery'],
+    action:    ['Export CSV', 'Add to favorites', 'View issues'],
+    takedown:  ['Export CSV', 'Add to favorites', 'Restore'],
   }
 
   const selectedReleases = RELEASES.filter(r => selected.has(r.id))
   const bulkActions = selectedReleases.length === 0 ? [] : selectedReleases
     .map(r => ACTIONS_BY_STATUS[r.status] || ['Export CSV'])
     .reduce((common, actions) => common.filter(a => actions.includes(a)))
-    .map(label => ({ label, onClick: () => {} }))
+    .map(label => ({
+      label,
+      onClick: label === 'Add to favorites'
+        ? () => { selectedReleases.forEach(r => { if (!favorites.includes(r.id)) onToggleFavorite(r.id) }); clearSelection() }
+        : () => {},
+    }))
 
   return (
     <div className="view-container">
