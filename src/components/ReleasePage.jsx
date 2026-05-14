@@ -271,6 +271,8 @@ function TrackBadge({ status }) {
 function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses, onConfirmTakedown, onCancelTakedown }) {
   const [openMenu, setOpenMenu] = useState(null)
   const [pendingTakedown, setPendingTakedown] = useState(null)
+  const [playingId, setPlayingId] = useState(null)
+  const togglePlay = id => setPlayingId(prev => prev === id ? null : id)
 
   useEffect(() => {
     const handler = () => setOpenMenu(null)
@@ -298,9 +300,9 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
     <div className="rp-tab-content">
       <div className="rp-tracks-table">
         <div className="rp-tracks-header">
+          <span className="rp-th"></span>
           <span className="rp-th">#</span>
           <span className="rp-th">Title</span>
-          <span className="rp-th">Version</span>
           <span className="rp-th">Artist</span>
           <span className="rp-th">ISRC</span>
           <span className="rp-th">Duration</span>
@@ -308,11 +310,32 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
           <span className="rp-th rp-th--reason">Reason</span>
           <span className="rp-th"></span>
         </div>
-        {tracks.map(t => (
-          <div key={t.id} className="rp-track-row">
-            <span className="rp-td rp-td--muted">{t.num}</span>
-            <span className="rp-td rp-track-title">{t.title}</span>
-            <span className="rp-td rp-td--muted">{t.version || '—'}</span>
+        {tracks.map(t => {
+          const isPlaying = playingId === t.id
+          return (
+          <div key={t.id} className={`rp-track-row${isPlaying ? ' rp-track-row--playing' : ''}`}>
+            <span className="rp-td rp-td--actions" style={{ paddingRight: 0 }}>
+              <button
+                className={`rp-play-btn${isPlaying ? ' rp-play-btn--playing' : ''}`}
+                onClick={() => togglePlay(t.id)}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying
+                  ? <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>
+                  : <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3l9 5-9 5V3z"/></svg>
+                }
+              </button>
+            </span>
+            <span className="rp-td rp-td--muted">
+              {isPlaying
+                ? <span className="rp-eq-bars"><span className="rp-eq-bar"/><span className="rp-eq-bar"/><span className="rp-eq-bar"/><span className="rp-eq-bar"/></span>
+                : t.num
+              }
+            </span>
+            <span className="rp-td rp-track-title">
+              {t.title}
+              {t.version && <span className="rp-track-version">{t.version}</span>}
+            </span>
             <span className="rp-td">{t.artist || artist}</span>
             {t.isrc ? (
               <span
@@ -352,7 +375,8 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
               )}
             </span>
           </div>
-        ))}
+        )
+        })}
       </div>
       {pendingTakedown && (
         <TrackManagementModal

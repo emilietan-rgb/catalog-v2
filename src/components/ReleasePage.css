@@ -440,7 +440,7 @@
 .rp-tracks-header,
 .rp-track-row {
   display: grid;
-  grid-template-columns: 40px 2fr 1fr 1fr 140px 72px 170px 1fr 48px;
+  grid-template-columns: 36px 40px 2fr 1fr 140px 72px 170px 1fr 48px;
   align-items: center;
   padding: 0 16px;
   gap: 0;
@@ -684,6 +684,58 @@
   white-space: nowrap;
   pointer-events: none;
 }
+
+/* Play button */
+.rp-play-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #9aa0b0;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.1s, background 0.1s, color 0.1s, border-color 0.1s;
+}
+.rp-track-row:hover .rp-play-btn { opacity: 1; }
+.rp-play-btn:hover { background: #f3f4f8; color: #0f1012; border-color: rgba(0,0,0,0.18); }
+.rp-play-btn--playing {
+  opacity: 1;
+  background: #0f1012;
+  border-color: #0f1012;
+  color: #fff;
+}
+.rp-play-btn--playing:hover { background: #27282c; border-color: #27282c; color: #fff; }
+
+/* Equalizer bars */
+.rp-eq-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+.rp-eq-bar {
+  width: 3px;
+  border-radius: 1px;
+  background: #0f1012;
+  animation: rp-eq 0.8s ease-in-out infinite alternate;
+  transform-origin: bottom;
+}
+.rp-eq-bar:nth-child(1) { height: 60%; animation-duration: 0.7s; }
+.rp-eq-bar:nth-child(2) { height: 100%; animation-duration: 0.9s; animation-delay: 0.1s; }
+.rp-eq-bar:nth-child(3) { height: 45%; animation-duration: 0.6s; animation-delay: 0.2s; }
+.rp-eq-bar:nth-child(4) { height: 80%; animation-duration: 1.0s; animation-delay: 0.05s; }
+@keyframes rp-eq {
+  from { transform: scaleY(0.2); }
+  to   { transform: scaleY(1); }
+}
+
+/* Playing row */
+.rp-track-row--playing { background: rgba(0,0,0,0.02); }
 
 .rp-info-label {
   width: 160px;
