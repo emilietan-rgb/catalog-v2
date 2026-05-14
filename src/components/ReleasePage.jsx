@@ -2,6 +2,30 @@ import { useState, useEffect } from 'react'
 import StatusBadge from './StatusBadge'
 import './ReleasePage.css'
 
+// ─── Release state derivation ────────────────────────────────────────────────
+
+function getReleaseState(release) {
+  const { status, info, tracklist = [] } = release
+  if (status === 'draft')     return 'draft'
+  if (status === 'review')    return 'review'
+  if (status === 'sent')      return 'sent'
+  if (status === 'action')    return 'action'
+  if (status === 'takedown')  return info === 'In progress' ? 'takedown_progress' : 'takedown_done'
+  if (status === 'delivered') return tracklist.some(t => t.status === 'takedown') ? 'delivered_partial' : 'delivered'
+  return 'delivered'
+}
+
+const TRACK_OVERRIDE = {
+  draft:             'draft',
+  review:            'pending',
+  sent:              'pending',
+  action:            'pending',
+  takedown_progress: 'takedown',
+  takedown_done:     'takedown',
+  delivered:         null,
+  delivered_partial: null,
+}
+
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const TOP_STORES = [
@@ -66,6 +90,24 @@ function StoreRow({ store, onArrow }) {
   )
 }
 
+function StoreRowOverride({ store, statusLabel, statusColor, onArrow }) {
+  return (
+    <div className="rp-store-row">
+      <StoreLogo abbr={store.abbr} color={store.color} />
+      <span className="rp-store-name">{store.name}</span>
+      <div className="rp-store-right">
+        <span className="rp-store-status" style={{ color: statusColor }}>{statusLabel}</span>
+      </div>
+      {onArrow
+        ? <button className="rp-store-arrow" onClick={() => onArrow(store.name)}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </button>
+        : <div className="rp-store-arrow-placeholder" />
+      }
+    </div>
+  )
+}
+
 function StoreDialog({ storeName, onClose }) {
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') onClose() }
@@ -93,13 +135,62 @@ function StoreDialog({ storeName, onClose }) {
 
 // ─── Distribution tab ─────────────────────────────────────────────────────────
 
-function DistributionTab() {
+function DistributionTab({ releaseState }) {
   const [dialog, setDialog] = useState(null)
   const [storeFilter, setStoreFilter] = useState('all')
 
-  const visible = storeFilter === 'all'          ? ALL_STORES
-    : storeFilter === 'delivered'                ? ALL_STORES.filter(s => s.status === 'delivered')
-    : storeFilter === 'not_delivered'            ? ALL_STORES.filter(s => s.status === 'not_delivered' || s.status === 'not_eligible')
+  // ── Empty states ────────────────────────────────────────────────────────
+  const EMPTY_MESSAGES = {
+    draft:  'This release has not been submitted yet. Distribution data will appear once delivered.',
+    review: 'This release is under review. Distribution data will appear once delivered.',
+    action: 'Correction required before distribution.',
+  }
+  if (EMPTY_MESSAGES[releaseState]) {
+    return (
+      <div className="rp-tab-content rp-empty-state">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" style={{ color: '#cdd3e2' }}>
+          <circle cx="8" cy="8" r="6"/><path d="M8 5v4"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/>
+        </svg>
+        <p className="rp-empty-title">Distribution not available</p>
+        <p className="rp-empty-sub">{EMPTY_MESSAGES[releaseState]}</p>
+      </div>
+    )
+  }
+
+  // ── Override states: sent / takedown ────────────────────────────────────
+  const OVERRIDE_CFG = {
+    sent:              { label: 'In progress',          color: '#b45309', showArrow: false },
+    takedown_progress: { label: 'Takedown in progress', color: '#b45309', showArrow: false },
+    takedown_done:     { label: 'Takedown done',        color: '#189c4c', showArrow: true  },
+  }
+  const override = OVERRIDE_CFG[releaseState]
+  if (override) {
+    const onArrow = override.showArrow ? setDialog : null
+    return (
+      <div className="rp-tab-content">
+        <div className="rp-section">
+          <span className="rp-section-label">Top stores</span>
+          <div className="rp-store-list">
+            {TOP_STORES.map(s => <StoreRowOverride key={s.name} store={s} statusLabel={override.label} statusColor={override.color} onArrow={onArrow} />)}
+          </div>
+        </div>
+        <div className="rp-section-divider" />
+        <div className="rp-section">
+          <span className="rp-section-label">All stores</span>
+          <div className="rp-store-list">
+            {ALL_STORES.map(s => <StoreRowOverride key={s.name} store={s} statusLabel={override.label} statusColor={override.color} onArrow={onArrow} />)}
+          </div>
+        </div>
+        {dialog && <StoreDialog storeName={dialog} onClose={() => setDialog(null)} />}
+      </div>
+    )
+  }
+
+  // ── Delivered (full) ────────────────────────────────────────────────────
+  const isPartial = releaseState === 'delivered_partial'
+  const visible = storeFilter === 'all'         ? ALL_STORES
+    : storeFilter === 'delivered'               ? ALL_STORES.filter(s => s.status === 'delivered')
+    : storeFilter === 'not_delivered'           ? ALL_STORES.filter(s => s.status === 'not_delivered' || s.status === 'not_eligible')
     : ALL_STORES.filter(s => s.status === 'error')
 
   const FILTER_TABS = [
@@ -111,15 +202,21 @@ function DistributionTab() {
 
   return (
     <div className="rp-tab-content">
+      {isPartial && (
+        <div className="rp-partial-notice">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 2L1.5 13h13L8 2z"/><path d="M8 7v3"/><circle cx="8" cy="12" r="0.5" fill="currentColor" stroke="none"/>
+          </svg>
+          Partial takedown active
+        </div>
+      )}
       <div className="rp-section">
         <span className="rp-section-label">Top stores</span>
         <div className="rp-store-list">
           {TOP_STORES.map(s => <StoreRow key={s.name} store={s} onArrow={setDialog} />)}
         </div>
       </div>
-
       <div className="rp-section-divider" />
-
       <div className="rp-section">
         <span className="rp-section-label">All stores</span>
         <div className="rp-store-filter-tabs">
@@ -137,7 +234,6 @@ function DistributionTab() {
           {visible.map(s => <StoreRow key={s.name} store={s} onArrow={setDialog} />)}
         </div>
       </div>
-
       {dialog && <StoreDialog storeName={dialog} onClose={() => setDialog(null)} />}
     </div>
   )
@@ -146,9 +242,13 @@ function DistributionTab() {
 // ─── Tracks tab ───────────────────────────────────────────────────────────────
 
 function TrackBadge({ status }) {
-  const cfg = status === 'live'
-    ? { bg: '#e8faef', border: '#d2f3df', color: '#189c4c', label: 'Live' }
-    : { bg: '#f3f4f8', border: '#ebeff5', color: '#0f1012', label: 'Takedown' }
+  const cfgs = {
+    live:     { bg: '#e8faef', border: '#d2f3df', color: '#189c4c', label: 'Live'     },
+    takedown: { bg: '#f3f4f8', border: '#ebeff5', color: '#3a3c42', label: 'Takedown' },
+    pending:  { bg: '#f3f4f8', border: '#ebeff5', color: '#9aa0b0', label: 'Pending'  },
+    draft:    { bg: '#f3f4f8', border: '#ebeff5', color: '#9aa0b0', label: 'Draft'    },
+  }
+  const cfg = cfgs[status] || cfgs.takedown
   return (
     <span className="rp-track-badge" style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.color }}>
       {cfg.label}
@@ -156,7 +256,7 @@ function TrackBadge({ status }) {
   )
 }
 
-function TracksTab({ tracks, artist }) {
+function TracksTab({ tracks, artist, trackStatusOverride }) {
   const [statuses, setStatuses] = useState(() => Object.fromEntries(tracks.map(t => [t.id, t.status])))
   const [openMenu, setOpenMenu] = useState(null)
 
@@ -167,6 +267,7 @@ function TracksTab({ tracks, artist }) {
   }, [])
 
   const toggle = id => { setStatuses(p => ({ ...p, [id]: p[id] === 'live' ? 'takedown' : 'live' })); setOpenMenu(null) }
+  const effectiveStatus = id => trackStatusOverride || statuses[id]
 
   return (
     <div className="rp-tab-content">
@@ -205,35 +306,23 @@ function TracksTab({ tracks, artist }) {
               <span className="rp-td rp-td--muted">—</span>
             )}
             <span className="rp-td rp-td--muted">{t.duration}</span>
-            <span className="rp-td"><TrackBadge status={statuses[t.id]} /></span>
+            <span className="rp-td"><TrackBadge status={effectiveStatus(t.id)} /></span>
             <span className="rp-td rp-td--actions">
-              <div
-                className="rp-track-menu-wrap"
-                onMouseDown={e => e.stopPropagation()}
-              >
-                <button
-                  className="rp-track-menu-btn"
-                  onClick={() => setOpenMenu(openMenu === t.id ? null : t.id)}
-                >
-                  ···
-                </button>
-                {openMenu === t.id && (
-                  <div className="rp-track-menu">
-                    {statuses[t.id] === 'live' ? (
-                      <button className="rp-menu-item rp-menu-item--danger" onClick={() => toggle(t.id)}>
-                        Takedown track
-                      </button>
-                    ) : (
-                      <button className="rp-menu-item" onClick={() => toggle(t.id)}>
-                        Cancel takedown
-                      </button>
-                    )}
-                    <button className="rp-menu-item" onClick={() => setOpenMenu(null)}>
-                      See distribution
-                    </button>
-                  </div>
-                )}
-              </div>
+              {!trackStatusOverride && (
+                <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
+                  <button className="rp-track-menu-btn" onClick={() => setOpenMenu(openMenu === t.id ? null : t.id)}>···</button>
+                  {openMenu === t.id && (
+                    <div className="rp-track-menu">
+                      {statuses[t.id] === 'live' ? (
+                        <button className="rp-menu-item rp-menu-item--danger" onClick={() => toggle(t.id)}>Takedown track</button>
+                      ) : (
+                        <button className="rp-menu-item" onClick={() => toggle(t.id)}>Cancel takedown</button>
+                      )}
+                      <button className="rp-menu-item" onClick={() => setOpenMenu(null)}>See distribution</button>
+                    </div>
+                  )}
+                </div>
+              )}
             </span>
           </div>
         ))}
@@ -282,6 +371,20 @@ function OverviewTab({ release }) {
   )
 }
 
+// ─── Rights tab ───────────────────────────────────────────────────────────────
+
+function RightsTab() {
+  return (
+    <div className="rp-tab-content rp-empty-state">
+      <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" style={{ color: '#cdd3e2' }}>
+        <path d="M8 2l5 2v4c0 3-2.5 5.5-5 6-2.5-.5-5-3-5-6V4l5-2z"/>
+      </svg>
+      <p className="rp-empty-title">No rights information</p>
+      <p className="rp-empty-sub">Rights and ownership data for this release will appear here.</p>
+    </div>
+  )
+}
+
 // ─── Header type/distribution icons ──────────────────────────────────────────
 
 function VideoIcon() {
@@ -315,6 +418,8 @@ function VinylIcon() {
 
 export default function ReleasePage({ release, onBack, isFavorited, onToggleFavorite }) {
   const [tab, setTab] = useState('overview')
+  const releaseState       = getReleaseState(release)
+  const trackStatusOverride = TRACK_OVERRIDE[releaseState]
 
   const typeLabel = release.type === 'video' ? 'Video' : release.type === 'ring' ? 'Ringtone' : 'Audio'
   const typeIcon  = release.type === 'video' ? <VideoIcon /> : release.type === 'ring' ? <RingtoneIcon /> : null
@@ -377,6 +482,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
           { key: 'overview',     label: 'Overview'               },
           { key: 'tracks',       label: `Tracks (${(release.tracklist || []).length})` },
           { key: 'distribution', label: 'Distribution'           },
+          { key: 'rights',       label: 'Rights'                 },
         ].map(t => (
           <button
             key={t.key}
@@ -388,9 +494,10 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
         ))}
       </div>
 
-      {tab === 'distribution' && <DistributionTab />}
-      {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} />}
+      {tab === 'distribution' && <DistributionTab releaseState={releaseState} />}
+      {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} trackStatusOverride={trackStatusOverride} />}
       {tab === 'overview'     && <OverviewTab release={release} />}
+      {tab === 'rights'       && <RightsTab />}
     </div>
   )
 }

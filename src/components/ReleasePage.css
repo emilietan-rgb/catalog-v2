@@ -1,3 +1,23 @@
+.rp-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 80px 0;
+}
+.rp-empty-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3a3c42;
+  margin: 0;
+}
+.rp-empty-sub {
+  font-size: 13px;
+  color: #9aa0b0;
+  margin: 0;
+}
+
 .rp-container {
   padding: 24px;
   display: flex;
@@ -181,6 +201,21 @@
   text-transform: uppercase;
   display: block;
   margin-bottom: 10px;
+}
+
+.rp-store-arrow-placeholder { width: 32px; flex-shrink: 0; }
+
+.rp-partial-notice {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
 }
 
 .rp-section-divider {
