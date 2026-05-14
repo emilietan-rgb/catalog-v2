@@ -389,6 +389,15 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
 
 // ─── Status block ─────────────────────────────────────────────────────────────
 
+const STATUS_ACCENT = {
+  delivered: { color: '#189c4c', rgb: '24,156,76'   },
+  review:    { color: '#e67828', rgb: '230,120,40'  },
+  action:    { color: '#e63a52', rgb: '230,58,82'   },
+  sent:      { color: '#7a57e2', rgb: '122,87,226'  },
+  takedown:  { color: '#3a3c42', rgb: '58,60,66'    },
+  draft:     { color: '#9aa0b0', rgb: '154,160,176' },
+}
+
 function StatusBlock({ releaseState, release, effectiveTracklist }) {
   const TODAY = new Date(2026, 4, 13)
 
@@ -402,11 +411,11 @@ function StatusBlock({ releaseState, release, effectiveTracklist }) {
     const dt = parseDD(dateStr)
     if (!dt) return null
     const days = Math.ceil((dt - TODAY) / 86400000)
-    if (days < 0) return { text: 'Release date passed', color: '#e63a52' }
-    const label = days === 0 ? 'today' : `in ${days} day${days !== 1 ? 's' : ''}`
+    if (days < 0) return { date: dateStr, label: 'Release date passed', color: '#e63a52' }
+    const relative = days === 0 ? 'Today' : `In ${days} day${days !== 1 ? 's' : ''}`
     const warn  = days <= 3 ? ' ⚠' : ''
     const color = days <= 3 ? '#e63a52' : days <= 14 ? '#b45309' : '#9aa0b0'
-    return { text: `${dateStr} · ${label}${warn}`, color }
+    return { date: dateStr, label: relative + warn, color }
   }
 
   const progressCount  = effectiveTracklist.filter(t => t.status === 'takedown-progress').length
@@ -432,7 +441,7 @@ function StatusBlock({ releaseState, release, effectiveTracklist }) {
       break
     case 'sent':
       badgeStatus = 'sent'
-      context = `Scheduled · ${release.releaseDate || '—'}`
+      context = 'Scheduled'
       dateLine = urgency(release.releaseDate)
       break
     case 'delivered':
@@ -467,13 +476,33 @@ function StatusBlock({ releaseState, release, effectiveTracklist }) {
       context = release.info || ''
   }
 
+  const accent = STATUS_ACCENT[badgeStatus] || STATUS_ACCENT.draft
+
   return (
-    <div className="rp-status-block">
+    <div
+      className="rp-status-block"
+      style={{ borderLeftColor: accent.color, background: `rgba(${accent.rgb},0.04)` }}
+    >
       <span className="rp-status-heading">Release status</span>
-      <StatusBadge status={badgeStatus} />
-      {context && <p className="rp-status-context" style={contextColor ? { color: contextColor } : undefined}>{context}</p>}
-      {secondLine && <p className="rp-status-line" style={{ color: secondLine.color }}>{secondLine.text}</p>}
-      {dateLine   && <p className="rp-status-line rp-status-date" style={{ color: dateLine.color }}>{dateLine.text}</p>}
+      <div className="rp-status-row">
+        <div className="rp-status-left">
+          <StatusBadge status={badgeStatus} />
+          {context && <p className="rp-status-context" style={contextColor ? { color: contextColor } : undefined}>{context}</p>}
+          {secondLine && <p className="rp-status-line" style={{ color: secondLine.color }}>{secondLine.text}</p>}
+        </div>
+        {dateLine && (
+          <div className="rp-status-right">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: dateLine.color, flexShrink: 0 }}>
+              <rect x="2" y="3" width="12" height="11" rx="1.5"/>
+              <path d="M5 1v4M11 1v4M2 7h12"/>
+            </svg>
+            <div className="rp-status-right-info">
+              <span className="rp-status-right-date">Expected live · {dateLine.date}</span>
+              <span className="rp-status-urgency" style={{ color: dateLine.color }}>{dateLine.label}</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
