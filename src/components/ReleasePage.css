@@ -648,6 +648,43 @@
 }
 .rp-info-row:last-child { border-bottom: none; }
 
+.rp-upc-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #0f1012;
+}
+.rp-upc-copy-wrap { position: relative; display: inline-flex; }
+.rp-upc-copy-btn {
+  opacity: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9aa0b0;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+  transition: opacity 0.1s, color 0.1s, background 0.1s;
+}
+.rp-info-row:hover .rp-upc-copy-btn { opacity: 1; }
+.rp-upc-copy-btn:hover { color: #0f1012; background: #f3f4f8; }
+.rp-upc-tooltip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% + 4px);
+  background: #0f1012;
+  color: #fff;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .rp-info-label {
   width: 160px;
   flex-shrink: 0;

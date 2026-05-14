@@ -461,6 +461,33 @@ function StatusBlock({ releaseState, release, effectiveTracklist }) {
 
 // ─── Overview tab ─────────────────────────────────────────────────────────────
 
+function UpcRow({ upc }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard?.writeText(upc)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+  return (
+    <div className="rp-info-row">
+      <span className="rp-info-label">UPC</span>
+      <span className="rp-upc-cell">
+        <span className="mono">{upc || '—'}</span>
+        {upc && (
+          <span className="rp-upc-copy-wrap">
+            <button className="rp-upc-copy-btn" onClick={copy}>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/>
+              </svg>
+            </button>
+            {copied && <span className="rp-upc-tooltip">Copied!</span>}
+          </span>
+        )}
+      </span>
+    </div>
+  )
+}
+
 function InfoRow({ label, value }) {
   return (
     <div className="rp-info-row">
@@ -471,23 +498,38 @@ function InfoRow({ label, value }) {
 }
 
 function OverviewTab({ release, releaseState, effectiveTracklist }) {
+  const typeLabel = release.type === 'video' ? 'Video' : release.type === 'ring' ? 'Ringtone' : 'Audio'
+  const typeIcon  = release.type === 'video'
+    ? <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="3" width="10" height="10" rx="1"/><path d="M12 6l3-2v8l-3-2"/></svg>
+    : release.type === 'ring'
+      ? <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M8 2a5 5 0 0 1 5 5v2.5l1 1.5H2l1-1.5V7a5 5 0 0 1 5-5z"/><path d="M6.5 13.5a1.5 1.5 0 0 0 3 0"/></svg>
+      : null
+  const distLabel = release.subtype === 'Physical' ? 'Physical distribution' : 'Digital'
+  const distIcon  = release.subtype === 'Physical'
+    ? <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ color: '#ff852f' }}><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/></svg>
+    : null
+  const dateValue = release.releaseDate
+    ? [release.releaseDate, release.releaseTime ? `${release.releaseTime} UTC` : null].filter(Boolean).join(' · ')
+    : '—'
+
   return (
     <div className="rp-tab-content">
       <StatusBlock releaseState={releaseState} release={release} effectiveTracklist={effectiveTracklist} />
       <div className="rp-overview-grid">
         <div className="rp-overview-card">
           <span className="rp-card-heading">Release info</span>
-          <InfoRow label="Label"               value={release.account || '—'} />
-          <InfoRow label="UPC"                 value={release.upc || '—'} />
-          <InfoRow label="Genre"               value="Electronic / Dance" />
-          <InfoRow label="Explicit lyrics"     value="No" />
-          <InfoRow label="Release date"        value={release.releaseDate || '—'} />
-          <InfoRow label="Distribution"        value={release.subtype === 'Physical' ? 'Physical' : 'Digital'} />
-          <InfoRow label="Territories"         value="Worldwide" />
-          <InfoRow label="Price tier"          value="Standard" />
-          <InfoRow label="Allow download"      value="Yes" />
-          <InfoRow label="YT reference match"  value="Yes" />
-          <InfoRow label="FB reference match"  value="Yes" />
+          <UpcRow upc={release.upc} />
+          <InfoRow label="Product type"       value={<span className="rp-detail-with-icon">{typeIcon}{typeLabel}</span>} />
+          <InfoRow label="Distribution"       value={<span className="rp-detail-with-icon">{distIcon}{distLabel}</span>} />
+          <InfoRow label="Label"              value={release.account || '—'} />
+          <InfoRow label="Genre"              value="Electronic / Dance" />
+          <InfoRow label="Explicit lyrics"    value="No" />
+          <InfoRow label="Release date"       value={dateValue} />
+          <InfoRow label="Territories"        value="Worldwide" />
+          <InfoRow label="Price tier"         value="Standard" />
+          <InfoRow label="Allow download"     value="Yes" />
+          <InfoRow label="YT reference match" value="Yes" />
+          <InfoRow label="FB reference match" value="Yes" />
         </div>
         <div className="rp-overview-card">
           <span className="rp-card-heading">Rights & credits</span>
@@ -522,6 +564,13 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
   const [tab, setTab] = useState('overview')
   const [artistDialog, setArtistDialog] = useState(false)
   const [releaseTakedownModal, setReleaseTakedownModal] = useState(false)
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = () => setMoreMenuOpen(false)
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   const releaseOverrides = trackOverrides[release.id] || {}
   const effectiveTracklist = (release.tracklist || []).map(t => ({
@@ -559,26 +608,23 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
           <div className="rp-header-info">
             <h1 className="rp-title">{release.title}</h1>
             <p className="rp-artist-line">By <span className="rp-artist-link" onClick={() => setArtistDialog(true)}>{release.artist}</span></p>
-            <span className="rp-header-upc mono">{release.upc || '—'}</span>
           </div>
         </div>
         <div className="rp-header-actions">
-          <button
-            className={`rp-action-btn rp-heart-btn${isFavorited ? ' rp-heart-btn--active' : ''}`}
-            onClick={onToggleFavorite}
-            title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <svg width="15" height="15" viewBox="0 0 16 16" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 13.5S2 9.3 2 5.5a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 14 5.5c0 3.8-6 8-6 8z"/>
-            </svg>
-          </button>
           <button className="rp-action-btn">Edit release</button>
-          {release.status === 'delivered' && !allTakenDown && (
-            <button className="rp-action-btn rp-action-btn--danger" onClick={() => setReleaseTakedownModal(true)}>
-              Takedown release
-            </button>
-          )}
-          <button className="rp-action-btn rp-action-btn--more">···</button>
+          <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
+            <button className="rp-action-btn rp-action-btn--more" onClick={() => setMoreMenuOpen(o => !o)}>···</button>
+            {moreMenuOpen && release.status === 'delivered' && !allTakenDown && (
+              <div className="rp-track-menu" style={{ minWidth: 160 }}>
+                <button
+                  className="rp-menu-item rp-menu-item--danger"
+                  onMouseDown={() => { setMoreMenuOpen(false); setReleaseTakedownModal(true) }}
+                >
+                  Takedown release
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
