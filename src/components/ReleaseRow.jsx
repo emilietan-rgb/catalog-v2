@@ -12,15 +12,18 @@ function ArtistDialog({ artist, label = 'artist', onClose }) {
   return (
     <div className="rr-overlay" onMouseDown={onClose}>
       <div className="rr-dialog" onMouseDown={e => e.stopPropagation()}>
-        <h3 className="rr-dialog-title">Open {label} page?</h3>
+        <div className="rr-dialog-header">
+          <h3 className="rr-dialog-title">Open {label} page</h3>
+          <button className="rr-dialog-close" onClick={onClose} aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M3 3l10 10M13 3L3 13"/>
+            </svg>
+          </button>
+        </div>
         <p className="rr-dialog-body">
           This will redirect you to the {label} page for {artist}.
         </p>
         <p className="rr-dialog-note">Prototype — link not active</p>
-        <div className="rr-dialog-actions">
-          <button className="rr-dialog-cancel" onClick={onClose}>Cancel</button>
-          <button className="rr-dialog-open" onClick={onClose}>Open {artist} →</button>
-        </div>
       </div>
     </div>
   )
@@ -60,6 +63,20 @@ function TypeIconWithTooltip({ type, subtype }) {
   )
 }
 
+function getTrackDerivedInfo(release) {
+  const tracklist = release.tracklist
+  if (!tracklist || !tracklist.length) return null
+  const progressCount = tracklist.filter(t => t.status === 'takedown-progress').length
+  if (progressCount > 0) {
+    return { text: `Removing ${progressCount} ${progressCount === 1 ? 'track' : 'tracks'}`, color: '#b45309' }
+  }
+  const takenDownCount = tracklist.filter(t => t.status === 'takedown').length
+  if (takenDownCount > 0) {
+    return { text: `${takenDownCount} ${takenDownCount === 1 ? 'track' : 'tracks'} removed`, color: '#b45309' }
+  }
+  return null
+}
+
 function getInfoColor(status, info) {
   if (!info) return '#9aa0b0'
   if (status === 'action') return '#e63a52'
@@ -77,14 +94,6 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
   const hasAction = release.status === 'action'
   const [artistDialog, setArtistDialog] = useState(false)
   const [accountDialog, setAccountDialog] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  useEffect(() => {
-    if (!menuOpen) return
-    const handler = () => setMenuOpen(false)
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [menuOpen])
 
   return (
     <div className={`release-row${selected ? ' selected' : ''}${hasAction ? ' has-action' : ''}`} onClick={onOpen}>
@@ -149,25 +158,16 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
 
       {/* Information */}
       <div className="release-cell release-cell-info">
-        <InfoLine text={release.info} color={getInfoColor(release.status, release.info)} />
+        {(() => {
+          const derived = getTrackDerivedInfo(release)
+          return derived
+            ? <InfoLine text={derived.text} color={derived.color} />
+            : <InfoLine text={release.info} color={getInfoColor(release.status, release.info)} />
+        })()}
       </div>
 
       {/* Actions */}
-      <div className="release-cell release-cell-actions">
-        <div className="row-menu-wrap" onMouseDown={e => e.stopPropagation()}>
-          <button
-            className="row-menu-btn"
-            onClick={e => { e.stopPropagation(); setMenuOpen(o => !o) }}
-          >···</button>
-          {menuOpen && (
-            <div className="row-menu-popper">
-              <button className="row-menu-item" onClick={e => { e.stopPropagation(); onToggleFavorite?.(); setMenuOpen(false) }}>
-                {isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <div className="release-cell release-cell-actions"></div>
 
       {artistDialog && <ArtistDialog artist={release.artist} onClose={() => setArtistDialog(false)} />}
       {accountDialog && <ArtistDialog artist={release.account} label="account" onClose={() => setAccountDialog(false)} />}
