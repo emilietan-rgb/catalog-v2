@@ -583,6 +583,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
           releaseTitle={release.title}
           artist={release.artist}
           initialSelected={effectiveTracklist.map(t => t.id)}
+          hideUsage
           onConfirm={ids => { handleConfirmTakedown(ids); setReleaseTakedownModal(false) }}
           onClose={() => setReleaseTakedownModal(false)}
         />

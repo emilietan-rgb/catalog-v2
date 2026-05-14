@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './TrackManagementModal.css'
 
-export default function TrackManagementModal({ track, occurrences, releaseTitle, artist, onConfirm, onClose, initialSelected }) {
+export default function TrackManagementModal({ track, occurrences, releaseTitle, artist, onConfirm, onClose, initialSelected, hideUsage }) {
   const [selected, setSelected] = useState(() =>
     initialSelected ? new Set(initialSelected) : new Set([track.id])
   )
@@ -55,10 +55,12 @@ export default function TrackManagementModal({ track, occurrences, releaseTitle,
         <div className="tmm-divider" />
 
         <div className="tmm-usage">
-          <span className="tmm-usage-heading">Sound recording usage</span>
-          <p className="tmm-usage-desc">
-            This recording appears in {occurrences.length} {occurrences.length === 1 ? 'track' : 'tracks'} across {releaseCount} {releaseCount === 1 ? 'release' : 'releases'}.
-          </p>
+          {!hideUsage && <span className="tmm-usage-heading">Sound recording usage</span>}
+          {!hideUsage && (
+            <p className="tmm-usage-desc">
+              This recording appears in {occurrences.length} {occurrences.length === 1 ? 'track' : 'tracks'} across {releaseCount} {releaseCount === 1 ? 'release' : 'releases'}.
+            </p>
+          )}
           <div className="tmm-occurrences">
             {occurrences.map(t => (
               <label key={t.id} className="tmm-occurrence">
