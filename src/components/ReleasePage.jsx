@@ -457,6 +457,13 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
   const [tab, setTab] = useState('overview')
   const [artistDialog, setArtistDialog] = useState(false)
   const [releaseTakedownModal, setReleaseTakedownModal] = useState(false)
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = () => setMoreMenuOpen(false)
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   const releaseOverrides = trackOverrides[release.id] || {}
   const effectiveTracklist = (release.tracklist || []).map(t => ({
@@ -526,13 +533,19 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
                 <path d="M8 13.5S2 9.3 2 5.5a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 14 5.5c0 3.8-6 8-6 8z"/>
               </svg>
             </button>
-            {release.status === 'delivered' && !allTakenDown && (
-              <button className="rp-action-btn rp-action-btn--danger" onClick={() => setReleaseTakedownModal(true)}>
-                Takedown release
-              </button>
-            )}
             <button className="rp-action-btn">Edit</button>
-            <button className="rp-action-btn rp-action-btn--more">···</button>
+            <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
+              <button className="rp-action-btn rp-action-btn--more" onClick={() => setMoreMenuOpen(o => !o)}>···</button>
+              {moreMenuOpen && (
+                <div className="rp-track-menu" style={{ right: 0, left: 'auto', minWidth: 160 }}>
+                  {release.status === 'delivered' && !allTakenDown && (
+                    <button className="rp-menu-item rp-menu-item--danger" onMouseDown={() => { setMoreMenuOpen(false); setReleaseTakedownModal(true) }}>
+                      Takedown release
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
