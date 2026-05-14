@@ -456,6 +456,7 @@ function VinylIcon() {
 export default function ReleasePage({ release, onBack, isFavorited, onToggleFavorite, trackOverrides = {}, onTrackStatusChange }) {
   const [tab, setTab] = useState('overview')
   const [artistDialog, setArtistDialog] = useState(false)
+  const [releaseTakedownModal, setReleaseTakedownModal] = useState(false)
 
   const releaseOverrides = trackOverrides[release.id] || {}
   const effectiveTracklist = (release.tracklist || []).map(t => ({
@@ -525,6 +526,11 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
                 <path d="M8 13.5S2 9.3 2 5.5a3.5 3.5 0 0 1 6-2.4A3.5 3.5 0 0 1 14 5.5c0 3.8-6 8-6 8z"/>
               </svg>
             </button>
+            {release.status === 'delivered' && !allTakenDown && (
+              <button className="rp-action-btn rp-action-btn--danger" onClick={() => setReleaseTakedownModal(true)}>
+                Takedown release
+              </button>
+            )}
             <button className="rp-action-btn">Edit</button>
             <button className="rp-action-btn rp-action-btn--more">···</button>
           </div>
@@ -568,6 +574,18 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
             <p className="rp-dialog-note">Prototype — link not active</p>
           </div>
         </div>
+      )}
+
+      {releaseTakedownModal && (
+        <TrackManagementModal
+          track={{ id: null, title: release.title, isrc: release.upc ? `UPC ${release.upc}` : '—', version: null }}
+          occurrences={effectiveTracklist}
+          releaseTitle={release.title}
+          artist={release.artist}
+          initialSelected={effectiveTracklist.map(t => t.id)}
+          onConfirm={ids => { handleConfirmTakedown(ids); setReleaseTakedownModal(false) }}
+          onClose={() => setReleaseTakedownModal(false)}
+        />
       )}
     </div>
   )

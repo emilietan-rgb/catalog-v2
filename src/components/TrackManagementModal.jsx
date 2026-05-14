@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import './TrackManagementModal.css'
 
-export default function TrackManagementModal({ track, occurrences, releaseTitle, artist, onConfirm, onClose }) {
-  const [selected, setSelected] = useState(new Set([track.id]))
+export default function TrackManagementModal({ track, occurrences, releaseTitle, artist, onConfirm, onClose, initialSelected }) {
+  const [selected, setSelected] = useState(() =>
+    initialSelected ? new Set(initialSelected) : new Set([track.id])
+  )
 
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') onClose() }

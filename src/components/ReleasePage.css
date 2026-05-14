@@ -139,6 +139,8 @@
 .rp-heart-btn--active { color: #e63a52; border-color: #fcdde2; background: #fff5f6; }
 .rp-heart-btn--active:hover { background: #ffeaed; }
 .rp-action-btn--more { letter-spacing: 1px; font-size: 14px; line-height: 1; }
+.rp-action-btn--danger { color: #e63a52; border-color: #e63a52; }
+.rp-action-btn--danger:hover { background: #fff1f3; border-color: #e63a52; }
 
 .rp-detail-col {
   display: flex;
