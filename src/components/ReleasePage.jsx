@@ -535,14 +535,18 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
             </button>
             <button className="rp-action-btn">Edit</button>
             <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
-              <button className="rp-action-btn rp-action-btn--more" onClick={() => setMoreMenuOpen(o => !o)}>···</button>
-              {moreMenuOpen && (
-                <div className="rp-track-menu" style={{ right: 0, left: 'auto', minWidth: 160 }}>
-                  {release.status === 'delivered' && !allTakenDown && (
-                    <button className="rp-menu-item rp-menu-item--danger" onMouseDown={() => { setMoreMenuOpen(false); setReleaseTakedownModal(true) }}>
-                      Takedown release
-                    </button>
-                  )}
+              <button
+                className="rp-action-btn rp-action-btn--more"
+                onClick={() => setMoreMenuOpen(o => !o)}
+              >···</button>
+              {moreMenuOpen && release.status === 'delivered' && !allTakenDown && (
+                <div className="rp-track-menu" style={{ minWidth: 160 }}>
+                  <button
+                    className="rp-menu-item rp-menu-item--danger"
+                    onMouseDown={() => { setMoreMenuOpen(false); setReleaseTakedownModal(true) }}
+                  >
+                    Takedown release
+                  </button>
                 </div>
               )}
             </div>
