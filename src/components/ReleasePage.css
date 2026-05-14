@@ -79,6 +79,7 @@
 .rp-header-info {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 5px;
 }
 
@@ -96,6 +97,11 @@
   color: #9aa0b0;
   margin: 0;
 }
+.rp-artist-link {
+  color: #3a3c42;
+  cursor: pointer;
+}
+.rp-artist-link:hover { text-decoration: underline; }
 
 .rp-header-right {
   display: flex;
@@ -337,6 +343,29 @@
   box-shadow: 0 8px 32px -4px rgba(0,0,0,0.18);
 }
 
+.rp-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.rp-dialog-close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9aa0b0;
+  border-radius: 4px;
+  padding: 0;
+}
+.rp-dialog-close:hover { background: #f3f4f8; color: #0f1012; }
+
 .rp-dialog-title {
   font-size: 16px;
   font-weight: 600;
@@ -393,19 +422,23 @@
   transition: background 0.1s;
 }
 .rp-dialog-open:hover { background: #27282c; }
+.rp-dialog-danger { background: #e63a52; }
+.rp-dialog-danger:hover { background: #c42d42; }
 
 /* Tracks table */
 .rp-tracks-table {
   background: #fff;
   border: 1px solid rgba(0,0,0,0.07);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
+.rp-tracks-header { border-radius: 8px 8px 0 0; overflow: hidden; }
+.rp-track-row:last-child { border-radius: 0 0 8px 8px; overflow: hidden; }
 
 .rp-tracks-header,
 .rp-track-row {
   display: grid;
-  grid-template-columns: 40px 2fr 1fr 1fr 140px 72px 110px 48px;
+  grid-template-columns: 40px 2fr 1fr 1fr 140px 72px 170px 1fr 48px;
   align-items: center;
   padding: 0 16px;
   gap: 0;
@@ -442,6 +475,8 @@
 }
 
 .rp-td--muted { color: #9aa0b0; }
+.rp-td--reason { font-size: 11px; color: #9aa0b0; font-style: italic; }
+.rp-th--reason { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
 
 .rp-td--actions {
   justify-content: center;
