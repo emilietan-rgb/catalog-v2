@@ -6,7 +6,7 @@ import FilterChip from './FilterChip'
 import './ReleasesView.css'
 
 const DRAFTS = [
-  { id:101, title:'Lueurs',               artist:'Aurélie Dumas',   trackCount:1,  upc:null,           type:'music', subtype:null,       account:'Lumière Records', releaseDate:'—',          coverImage:'https://images.unsplash.com/photo-1667833966178-f98135a582f8?q=80&w=400', completeness:30,  completenessLabel:'Tracks missing'      },
+  { id:101, title:'Glimmers',               artist:'Aurélie Dumas',   trackCount:1,  upc:null,           type:'music', subtype:null,       account:'Lumière Records', releaseDate:'—',          coverImage:'https://images.unsplash.com/photo-1667833966178-f98135a582f8?q=80&w=400', completeness:30,  completenessLabel:'Tracks missing'      },
   { id:1,   title:'Summer Call',          artist:'Echo Park',       trackCount:1,  upc:null,           type:'video', subtype:null,       account:'Echo Park',       releaseDate:null,         coverImage:'https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=400', completeness:40,  completenessLabel:'Artwork required'    },
   { id:2,   title:'Static Dreams',        artist:'Drift State',     trackCount:3,  upc:null,           type:'music', subtype:null,       account:'Lumière Records', releaseDate:'10/04/2026', coverImage:'https://images.unsplash.com/photo-1618609377864-68609b857e90?q=80&w=400', completeness:70,  completenessLabel:'Release date missing'},
   { id:3,   title:'Solar Wind',           artist:'Echo Park',       trackCount:6,  upc:null,           type:'music', subtype:null,       account:'Echo Park',       releaseDate:'10/04/2026', coverImage:'https://images.unsplash.com/photo-1504704911898-68304a7d2807?q=80&w=400', completeness:100, completenessLabel:'Ready to submit'    },
