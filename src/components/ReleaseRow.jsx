@@ -82,7 +82,7 @@ function getTrackDerivedInfo(release) {
   }
   const takenDownCount = tracklist.filter(t => t.status === 'takedown').length
   if (takenDownCount > 0) {
-    return { text: `${takenDownCount} ${takenDownCount === 1 ? 'track' : 'tracks'} removed`, color: '#b45309' }
+    return { text: `${takenDownCount} ${takenDownCount === 1 ? 'track' : 'tracks'} taken down`, color: '#b45309' }
   }
   return null
 }

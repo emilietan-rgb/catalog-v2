@@ -528,7 +528,7 @@ function StatusBlock({ releaseState, release, effectiveTracklist }) {
       secondLine = progressCount > 0
         ? { text: `Removing ${progressCount} track${progressCount !== 1 ? 's' : ''}`, color: '#b45309' }
         : takenDownCount > 0
-          ? { text: `${takenDownCount} track${takenDownCount !== 1 ? 's' : ''} removed`, color: '#b45309' }
+          ? { text: `${takenDownCount} track${takenDownCount !== 1 ? 's' : ''} taken down`, color: '#b45309' }
           : null
       break
     case 'tracks_all_takedown':
