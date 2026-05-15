@@ -652,6 +652,7 @@ function OverviewTab({ release, releaseState, effectiveTracklist }) {
           <UpcRow upc={release.upc} />
           <InfoRow label="Product type"       value={<span className="rp-detail-with-icon">{typeIcon}{typeLabel}</span>} />
           <InfoRow label="Distribution"       value={<span className="rp-detail-with-icon">{distIcon}{distLabel}</span>} />
+          <InfoRow label="Account"            value={release.account || '—'} />
           <InfoRow label="Label"              value={release.account || '—'} />
           <InfoRow label="Genre"              value="Electronic / Dance" />
           <InfoRow label="Explicit lyrics"    value="No" />
