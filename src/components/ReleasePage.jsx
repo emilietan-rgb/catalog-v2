@@ -146,106 +146,170 @@ function StoreDialog({ storeName, onClose }) {
 
 // ─── Distribution tab ─────────────────────────────────────────────────────────
 
+const REGIONS = [
+  { name: 'Europe', countries: ['France','Germany','UK','Spain','Italy','Netherlands','Belgium','Sweden','Norway','Denmark','Finland','Poland','Portugal','Austria','Switzerland','Czech Republic','Hungary','Romania','Greece','Croatia','Slovakia','Slovenia','Bulgaria','Serbia','Ukraine','Ireland','Luxembourg','Malta','Cyprus','Estonia','Latvia','Lithuania','Iceland','Albania','Bosnia','Kosovo','North Macedonia','Moldova','Montenegro','Armenia','Azerbaijan','Georgia','Belarus','Kazakhstan','Kyrgyzstan'] },
+  { name: 'North America', countries: ['USA','Canada','Mexico'] },
+  { name: 'Latin America', countries: ['Brazil','Argentina','Colombia','Chile','Peru','Venezuela','Ecuador','Bolivia','Paraguay','Uruguay','Costa Rica','Panama','Guatemala','Honduras','El Salvador','Nicaragua','Cuba','Dominican Republic','Puerto Rico','Jamaica'] },
+  { name: 'Asia Pacific', countries: ['Japan','South Korea','Australia','China','India','Indonesia','Philippines','Thailand','Vietnam','Malaysia','Singapore','New Zealand','Taiwan','Hong Kong','Pakistan','Bangladesh','Sri Lanka','Nepal','Myanmar','Cambodia','Laos','Mongolia','Papua New Guinea','Fiji','Samoa','Tonga','Vanuatu','Solomon Islands','Brunei','Timor-Leste','Maldives','Bhutan','Afghanistan','Uzbekistan','Tajikistan','Turkmenistan','Kyrgyzstan','North Korea','Macau','French Polynesia','New Caledonia','Guam','Palau','Marshall Islands','Micronesia','Kiribati','Tuvalu','Nauru','Cook Islands'] },
+  { name: 'Middle East', countries: ['UAE','Saudi Arabia','Egypt','Israel','Turkey','Jordan','Lebanon','Kuwait','Qatar','Bahrain','Oman','Iraq','Iran','Syria','Yemen','Palestine','Libya','Tunisia','Algeria','Morocco'] },
+  { name: 'Africa', countries: ['South Africa','Nigeria','Kenya','Ghana','Ethiopia','Tanzania','Uganda','Senegal','Ivory Coast','Cameroon','Angola','Mozambique','Zimbabwe','Zambia','Madagascar','Rwanda','Botswana','Namibia','Malawi','Mali','Burkina Faso','Niger','Guinea','Benin','Togo','Sierra Leone','Liberia','Mauritania','Chad','Sudan','Somalia','Congo DR','Congo Republic','Gabon','Equatorial Guinea','Central African Republic','South Sudan','Eritrea','Djibouti','Comoros','Mauritius','Seychelles','Cape Verde','São Tomé','Gambia','Guinea-Bissau','Lesotho','Swaziland','Burundi'] },
+  { name: 'Rest of World', countries: ['Russia','Greenland','Faroe Islands','and other territories'] },
+]
+
+function TerritoriesTab({ releaseState }) {
+  const [expanded, setExpanded] = useState({})
+  const toggle = name => setExpanded(prev => ({ ...prev, [name]: !prev[name] }))
+
+  if (releaseState === 'draft') {
+    return (
+      <div className="rp-empty-state">
+        <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" style={{ color: '#cdd3e2' }}>
+          <circle cx="8" cy="8" r="6"/><path d="M4 8h8M8 4v8"/>
+        </svg>
+        <p className="rp-empty-title">No territory scope configured yet</p>
+        <p className="rp-empty-sub">Territories will appear once the release is submitted.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rp-territories">
+      {REGIONS.map(r => (
+        <div key={r.name} className="rp-territory-region">
+          <button className="rp-territory-header" onClick={() => toggle(r.name)}>
+            <span className="rp-territory-name">{r.name}</span>
+            <span className="rp-territory-count">{r.countries.length} countries</span>
+            <svg
+              className={`rp-territory-chevron${expanded[r.name] ? ' rp-territory-chevron--open' : ''}`}
+              width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+            >
+              <path d="M6 3l5 5-5 5"/>
+            </svg>
+          </button>
+          <div className={`rp-territory-countries${expanded[r.name] ? ' rp-territory-countries--open' : ''}`}>
+            <div className="rp-territory-countries-inner">
+              <div className="rp-territory-pills">
+                {r.countries.map(c => <span key={c} className="rp-country-pill">{c}</span>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function DistributionTab({ releaseState }) {
+  const [distSubTab, setDistSubTab] = useState('stores')
   const [dialog, setDialog] = useState(null)
   const [storeFilter, setStoreFilter] = useState('all')
 
-  // ── Empty states ────────────────────────────────────────────────────────
   const EMPTY_MESSAGES = {
     draft:  'This release has not been submitted yet. Distribution data will appear once delivered.',
     review: 'This release is under review. Distribution data will appear once delivered.',
     action: 'Correction required before distribution.',
   }
-  if (EMPTY_MESSAGES[releaseState]) {
-    return (
-      <div className="rp-tab-content rp-empty-state">
-        <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" style={{ color: '#cdd3e2' }}>
-          <circle cx="8" cy="8" r="6"/><path d="M8 5v4"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/>
-        </svg>
-        <p className="rp-empty-title">Distribution not available</p>
-        <p className="rp-empty-sub">{EMPTY_MESSAGES[releaseState]}</p>
-      </div>
-    )
-  }
-
-  // ── Override states: sent / takedown ────────────────────────────────────
   const OVERRIDE_CFG = {
     sent:              { label: 'In progress',          color: '#b45309', showArrow: false },
     takedown_progress: { label: 'Takedown in progress', color: '#b45309', showArrow: false },
     takedown_done:     { label: 'Takedown done',        color: '#189c4c', showArrow: true  },
   }
-  const override = OVERRIDE_CFG[releaseState]
-  if (override) {
-    const onArrow = override.showArrow ? setDialog : null
+
+  const renderStores = () => {
+    if (EMPTY_MESSAGES[releaseState]) {
+      return (
+        <div className="rp-empty-state">
+          <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" style={{ color: '#cdd3e2' }}>
+            <circle cx="8" cy="8" r="6"/><path d="M8 5v4"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/>
+          </svg>
+          <p className="rp-empty-title">Distribution not available</p>
+          <p className="rp-empty-sub">{EMPTY_MESSAGES[releaseState]}</p>
+        </div>
+      )
+    }
+
+    const override = OVERRIDE_CFG[releaseState]
+    if (override) {
+      const onArrow = override.showArrow ? setDialog : null
+      return (
+        <>
+          <div className="rp-section">
+            <span className="rp-section-label">Top stores</span>
+            <div className="rp-store-list">
+              {TOP_STORES.map(s => <StoreRowOverride key={s.name} store={s} statusLabel={override.label} statusColor={override.color} onArrow={onArrow} />)}
+            </div>
+          </div>
+          <div className="rp-section-divider" />
+          <div className="rp-section">
+            <span className="rp-section-label">All stores</span>
+            <div className="rp-store-list">
+              {ALL_STORES.map(s => <StoreRowOverride key={s.name} store={s} statusLabel={override.label} statusColor={override.color} onArrow={onArrow} />)}
+            </div>
+          </div>
+          {dialog && <StoreDialog storeName={dialog} onClose={() => setDialog(null)} />}
+        </>
+      )
+    }
+
+    const isPartial = releaseState === 'delivered_partial'
+    const visible = storeFilter === 'all'           ? ALL_STORES
+      : storeFilter === 'delivered'                 ? ALL_STORES.filter(s => s.status === 'delivered')
+      : storeFilter === 'not_delivered'             ? ALL_STORES.filter(s => s.status === 'not_delivered' || s.status === 'not_eligible')
+      : ALL_STORES.filter(s => s.status === 'error')
+
+    const FILTER_TABS = [
+      { key: 'all',           label: 'All (81)'           },
+      { key: 'delivered',     label: 'Delivered (52)'     },
+      { key: 'not_delivered', label: 'Not delivered (24)' },
+      { key: 'error',         label: 'Error (5)'          },
+    ]
+
     return (
-      <div className="rp-tab-content">
+      <>
+        {isPartial && (
+          <div className="rp-partial-notice">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 2L1.5 13h13L8 2z"/><path d="M8 7v3"/><circle cx="8" cy="12" r="0.5" fill="currentColor" stroke="none"/>
+            </svg>
+            Partial takedown active
+          </div>
+        )}
         <div className="rp-section">
           <span className="rp-section-label">Top stores</span>
           <div className="rp-store-list">
-            {TOP_STORES.map(s => <StoreRowOverride key={s.name} store={s} statusLabel={override.label} statusColor={override.color} onArrow={onArrow} />)}
+            {TOP_STORES.map(s => <StoreRow key={s.name} store={s} onArrow={setDialog} />)}
           </div>
         </div>
         <div className="rp-section-divider" />
         <div className="rp-section">
           <span className="rp-section-label">All stores</span>
+          <div className="rp-store-filter-tabs">
+            {FILTER_TABS.map(f => (
+              <button
+                key={f.key}
+                className={`rp-store-filter-tab${storeFilter === f.key ? ' rp-store-filter-tab--active' : ''}`}
+                onClick={() => setStoreFilter(f.key)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
           <div className="rp-store-list">
-            {ALL_STORES.map(s => <StoreRowOverride key={s.name} store={s} statusLabel={override.label} statusColor={override.color} onArrow={onArrow} />)}
+            {visible.map(s => <StoreRow key={s.name} store={s} onArrow={setDialog} />)}
           </div>
         </div>
         {dialog && <StoreDialog storeName={dialog} onClose={() => setDialog(null)} />}
-      </div>
+      </>
     )
   }
 
-  // ── Delivered (full) ────────────────────────────────────────────────────
-  const isPartial = releaseState === 'delivered_partial'
-  const visible = storeFilter === 'all'         ? ALL_STORES
-    : storeFilter === 'delivered'               ? ALL_STORES.filter(s => s.status === 'delivered')
-    : storeFilter === 'not_delivered'           ? ALL_STORES.filter(s => s.status === 'not_delivered' || s.status === 'not_eligible')
-    : ALL_STORES.filter(s => s.status === 'error')
-
-  const FILTER_TABS = [
-    { key: 'all',           label: 'All (81)'           },
-    { key: 'delivered',     label: 'Delivered (52)'     },
-    { key: 'not_delivered', label: 'Not delivered (24)' },
-    { key: 'error',         label: 'Error (5)'          },
-  ]
-
   return (
     <div className="rp-tab-content">
-      {isPartial && (
-        <div className="rp-partial-notice">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 2L1.5 13h13L8 2z"/><path d="M8 7v3"/><circle cx="8" cy="12" r="0.5" fill="currentColor" stroke="none"/>
-          </svg>
-          Partial takedown active
-        </div>
-      )}
-      <div className="rp-section">
-        <span className="rp-section-label">Top stores</span>
-        <div className="rp-store-list">
-          {TOP_STORES.map(s => <StoreRow key={s.name} store={s} onArrow={setDialog} />)}
-        </div>
+      <div className="rp-dist-subtabs">
+        <button className={`rp-dist-subtab${distSubTab === 'stores' ? ' rp-dist-subtab--active' : ''}`} onClick={() => setDistSubTab('stores')}>Stores</button>
+        <button className={`rp-dist-subtab${distSubTab === 'territories' ? ' rp-dist-subtab--active' : ''}`} onClick={() => setDistSubTab('territories')}>Territories</button>
       </div>
-      <div className="rp-section-divider" />
-      <div className="rp-section">
-        <span className="rp-section-label">All stores</span>
-        <div className="rp-store-filter-tabs">
-          {FILTER_TABS.map(f => (
-            <button
-              key={f.key}
-              className={`rp-store-filter-tab${storeFilter === f.key ? ' rp-store-filter-tab--active' : ''}`}
-              onClick={() => setStoreFilter(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <div className="rp-store-list">
-          {visible.map(s => <StoreRow key={s.name} store={s} onArrow={setDialog} />)}
-        </div>
-      </div>
-      {dialog && <StoreDialog storeName={dialog} onClose={() => setDialog(null)} />}
+      {distSubTab === 'territories' ? <TerritoriesTab releaseState={releaseState} /> : renderStores()}
     </div>
   )
 }
@@ -306,6 +370,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
           <span className="rp-th">Artist</span>
           <span className="rp-th">ISRC</span>
           <span className="rp-th">Duration</span>
+          <span className="rp-th">Status</span>
           <span className="rp-th rp-th--reason">Reason</span>
           <span className="rp-th"></span>
         </div>
@@ -331,7 +396,10 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
                 : idx + 1
               }
             </span>
-            <span className="rp-td rp-track-title">{t.title}</span>
+            <span className="rp-td rp-track-title">
+              {t.title}
+              {t.version && <span className="rp-track-version">{t.version}</span>}
+            </span>
             <span className="rp-td">{t.artist || artist}</span>
             {t.isrc ? (
               <span
@@ -351,6 +419,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
               <span className="rp-td rp-td--muted">—</span>
             )}
             <span className="rp-td rp-td--muted">{t.duration}</span>
+            <span className="rp-td"><TrackBadge status={effectiveStatus(t.id)} /></span>
             <span className="rp-td rp-td--reason">{t.takedownReason || ''}</span>
             <span className="rp-td rp-td--actions">
               {!trackStatusOverride && (

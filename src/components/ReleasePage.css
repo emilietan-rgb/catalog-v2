@@ -440,7 +440,7 @@
 .rp-tracks-header,
 .rp-track-row {
   display: grid;
-  grid-template-columns: 36px 40px 2fr 1fr 140px 72px 1fr 48px;
+  grid-template-columns: 36px 40px 2fr 1fr 140px 72px 170px 1fr 48px;
   align-items: center;
   padding: 0 16px;
   gap: 0;
@@ -764,6 +764,79 @@
 
 /* Playing row */
 .rp-track-row--playing { background: rgba(0,0,0,0.02); }
+
+/* Distribution sub-tabs */
+.rp-dist-subtabs {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  margin-bottom: 20px;
+}
+.rp-dist-subtab {
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  font-size: 12px;
+  color: #9aa0b0;
+  cursor: pointer;
+  font-family: inherit;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.1s;
+}
+.rp-dist-subtab:hover { color: #3a3c42; }
+.rp-dist-subtab--active { color: #0f1012; border-bottom-color: #0f1012; font-weight: 500; }
+
+/* Territories */
+.rp-territories {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.rp-territory-region { border-bottom: 1px solid rgba(0,0,0,0.04); }
+.rp-territory-region:last-child { border-bottom: none; }
+.rp-territory-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  gap: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.rp-territory-header:hover { background: rgba(0,0,0,0.02); }
+.rp-territory-name { flex: 1; font-size: 13px; font-weight: 500; color: #0f1012; text-align: left; }
+.rp-territory-count { font-size: 12px; color: #9aa0b0; flex-shrink: 0; }
+.rp-territory-chevron { flex-shrink: 0; color: #9aa0b0; transition: transform 0.2s ease; }
+.rp-territory-chevron--open { transform: rotate(90deg); }
+.rp-territory-countries {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: grid-template-rows 0.2s ease;
+}
+.rp-territory-countries--open { grid-template-rows: 1fr; }
+.rp-territory-countries-inner {
+  overflow: hidden;
+  min-height: 0;
+  padding: 0 16px;
+  transition: padding 0.15s ease;
+}
+.rp-territory-countries--open .rp-territory-countries-inner { padding: 8px 16px 16px; }
+.rp-territory-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.rp-country-pill {
+  font-size: 11px;
+  color: #3a3c42;
+  background: rgba(0,0,0,0.05);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
 
 .rp-info-label {
   width: 160px;
