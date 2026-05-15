@@ -164,7 +164,12 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
           <h1 className="view-title">Releases</h1>
         </div>
         <div className="view-header-right">
-          <button className="btn-export">Export releases</button>
+          <button className="btn-export">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 2v8M5 7l3 3 3-3M3 11v2h10v-2"/>
+            </svg>
+            Export releases
+          </button>
         </div>
       </div>
 

@@ -21,6 +21,9 @@
 }
 
 .btn-export, .btn-create-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 32px;
   padding: 0 12px;
   border-radius: 6px;
