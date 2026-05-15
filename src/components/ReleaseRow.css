@@ -12,10 +12,6 @@
 }
 .release-row:hover { background: #fafaf9; }
 .release-row.selected { background: #f5f4f2; }
-.release-row.has-action {
-  border-left: 2px solid #e63a52;
-  padding-left: 14px;
-}
 
 .release-cell-check {
   display: flex;
