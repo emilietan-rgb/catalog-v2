@@ -481,7 +481,7 @@ const STATUS_ACCENT = {
   draft:     { color: '#9aa0b0', rgb: '154,160,176' },
 }
 
-function StatusBlock({ releaseState, release, effectiveTracklist }) {
+function StatusBlock({ releaseState, release, effectiveTracklist, onGoToTracks }) {
   const TODAY = new Date(2026, 4, 13)
 
   const parseDD = str => {
@@ -571,7 +571,11 @@ function StatusBlock({ releaseState, release, effectiveTracklist }) {
         <div className="rp-status-left">
           <StatusBadge status={badgeStatus} />
           {context && <p className="rp-status-context" style={contextColor ? { color: contextColor } : undefined}>{context}</p>}
-          {secondLine && <p className="rp-status-line" style={{ color: secondLine.color }}>{secondLine.text}</p>}
+          {secondLine && (
+            onGoToTracks
+              ? <button className="rp-status-track-link" style={{ color: secondLine.color }} onClick={onGoToTracks}>{secondLine.text}</button>
+              : <p className="rp-status-line" style={{ color: secondLine.color }}>{secondLine.text}</p>
+          )}
         </div>
         {dateLine && (
           <div className="rp-status-right">
@@ -628,7 +632,7 @@ function InfoRow({ label, value }) {
   )
 }
 
-function OverviewTab({ release, releaseState, effectiveTracklist }) {
+function OverviewTab({ release, releaseState, effectiveTracklist, onGoToTracks }) {
   const typeLabel = release.type === 'video' ? 'Video' : release.type === 'ring' ? 'Ringtone' : 'Audio'
   const typeIcon  = release.type === 'video'
     ? <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="3" width="10" height="10" rx="1"/><path d="M12 6l3-2v8l-3-2"/></svg>
@@ -645,7 +649,7 @@ function OverviewTab({ release, releaseState, effectiveTracklist }) {
 
   return (
     <div className="rp-tab-content">
-      <StatusBlock releaseState={releaseState} release={release} effectiveTracklist={effectiveTracklist} />
+      <StatusBlock releaseState={releaseState} release={release} effectiveTracklist={effectiveTracklist} onGoToTracks={onGoToTracks} />
       <div className="rp-overview-grid">
         <div className="rp-overview-card">
           <span className="rp-card-heading">Release info</span>
@@ -779,7 +783,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
 
       {tab === 'distribution' && <DistributionTab releaseState={releaseState} release={release} />}
       {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} releaseTitle={release.title} trackStatusOverride={trackStatusOverride} statuses={trackStatuses} onConfirmTakedown={handleConfirmTakedown} onCancelTakedown={handleCancelTakedown} />}
-      {tab === 'overview'     && <OverviewTab release={release} releaseState={releaseState} effectiveTracklist={effectiveTracklist} />}
+      {tab === 'overview'     && <OverviewTab release={release} releaseState={releaseState} effectiveTracklist={effectiveTracklist} onGoToTracks={() => setTab('tracks')} />}
       {tab === 'rights'       && <RightsTab />}
 
       {artistDialog && (
