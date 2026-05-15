@@ -97,16 +97,16 @@
 .btn-clear-filters {
   height: 28px;
   padding: 0 10px;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: none;
   border-radius: 5px;
   background: none;
   font-size: 12px;
   font-family: inherit;
-  color: #9aa0b0;
+  color: #3a3c42;
   cursor: pointer;
-  transition: color 0.1s, border-color 0.1s, background 0.1s;
+  transition: color 0.1s, background 0.1s;
 }
-.btn-clear-filters:hover { color: #0f1012; border-color: rgba(0,0,0,0.2); background: #f3f4f8; }
+.btn-clear-filters:hover { color: #0f1012; background: #f3f4f8; }
 .search-kbd {
   font-size: 11px;
   color: #9aa0b0;
