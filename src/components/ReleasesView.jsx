@@ -33,7 +33,7 @@ const STATUS_LABEL_MAP = {
   takedown:  'Taken down',
 }
 
-function Toolbar({ search, onSearch, filters, onFilter }) {
+function Toolbar({ search, onSearch, filters, onFilter, onClearFilters }) {
   const getAvatarSrc  = name => `https://picsum.photos/seed/${ARTIST_AVATAR_SEEDS[name] || 'default'}/80/80`
   const getArtistMeta = name => { const c = ARTIST_RELEASE_COUNTS[name];  return c ? `${c} release${c !== 1 ? 's' : ''}` : null }
   const getAccountMeta= name => { const c = ACCOUNT_RELEASE_COUNTS[name]; return c ? `${c} release${c !== 1 ? 's' : ''}` : null }
@@ -61,6 +61,9 @@ function Toolbar({ search, onSearch, filters, onFilter }) {
         <FilterChip label="Artist"  options={ARTISTS}  value={filters.artist}  onChange={v => onFilter('artist',  v)} multi showSearch avatarType="photo" getAvatarSrc={getAvatarSrc} getMeta={getArtistMeta} />
         <FilterChip label="Status"  options={STATUS_OPTIONS} value={filters.status} onChange={v => onFilter('status', v)} multi />
         <FilterChip label="Release date" value={filters.date} onChange={v => onFilter('date', v)} type="date" />
+        {(filters.account.length > 0 || filters.artist.length > 0 || filters.status.length > 0 || filters.date) && (
+          <button className="btn-clear-filters" onClick={onClearFilters}>Clear</button>
+        )}
       </div>
     </div>
   )
@@ -178,7 +181,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
         </div>
       </div>
 
-      <Toolbar search={search} onSearch={setSearch} filters={filters} onFilter={handleFilter} />
+      <Toolbar search={search} onSearch={setSearch} filters={filters} onFilter={handleFilter} onClearFilters={() => { setFilters({ account: [], artist: [], status: [], date: null }); setPage(1) }} />
 
       <div className="list-container">
         <div className="list-table-header">
