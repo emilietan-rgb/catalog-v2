@@ -155,6 +155,7 @@ const REGIONS = [
   { name: 'Africa', countries: ['South Africa','Nigeria','Kenya','Ghana','Ethiopia','Tanzania','Uganda','Senegal','Ivory Coast','Cameroon','Angola','Mozambique','Zimbabwe','Zambia','Madagascar','Rwanda','Botswana','Namibia','Malawi','Mali','Burkina Faso','Niger','Guinea','Benin','Togo','Sierra Leone','Liberia','Mauritania','Chad','Sudan','Somalia','Congo DR','Congo Republic','Gabon','Equatorial Guinea','Central African Republic','South Sudan','Eritrea','Djibouti','Comoros','Mauritius','Seychelles','Cape Verde','São Tomé','Gambia','Guinea-Bissau','Lesotho','Swaziland','Burundi'] },
   { name: 'Rest of World', countries: ['Russia','Greenland','Faroe Islands','and other territories'] },
 ]
+const TOTAL_TERRITORIES = REGIONS.reduce((sum, r) => sum + r.countries.length, 0)
 
 function TerritoriesTab({ releaseState }) {
   const [expanded, setExpanded] = useState({})
@@ -303,11 +304,18 @@ function DistributionTab({ releaseState }) {
     )
   }
 
+  const DELIVERED_STATES = new Set(['delivered','delivered_partial','tracks_all_takedown','takedown_progress','takedown_done'])
+  const storesCount = DELIVERED_STATES.has(releaseState) ? 52 : 0
+
   return (
     <div className="rp-tab-content">
       <div className="rp-dist-subtabs">
-        <button className={`rp-dist-subtab${distSubTab === 'stores' ? ' rp-dist-subtab--active' : ''}`} onClick={() => setDistSubTab('stores')}>Stores</button>
-        <button className={`rp-dist-subtab${distSubTab === 'territories' ? ' rp-dist-subtab--active' : ''}`} onClick={() => setDistSubTab('territories')}>Territories</button>
+        <button className={`rp-dist-subtab${distSubTab === 'stores' ? ' rp-dist-subtab--active' : ''}`} onClick={() => setDistSubTab('stores')}>
+          Stores<span className="rp-dist-subtab-count">{storesCount}</span>
+        </button>
+        <button className={`rp-dist-subtab${distSubTab === 'territories' ? ' rp-dist-subtab--active' : ''}`} onClick={() => setDistSubTab('territories')}>
+          Territories<span className="rp-dist-subtab-count">{TOTAL_TERRITORIES}</span>
+        </button>
       </div>
       {distSubTab === 'territories' ? <TerritoriesTab releaseState={releaseState} /> : renderStores()}
     </div>

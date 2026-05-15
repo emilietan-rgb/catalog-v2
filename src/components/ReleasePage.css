@@ -773,6 +773,9 @@
   margin-bottom: 20px;
 }
 .rp-dist-subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   height: 34px;
   padding: 0 12px;
   border: none;
@@ -787,6 +790,20 @@
 }
 .rp-dist-subtab:hover { color: #3a3c42; }
 .rp-dist-subtab--active { color: #0f1012; border-bottom-color: #0f1012; font-weight: 500; }
+.rp-dist-subtab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9aa0b0;
+}
+.rp-dist-subtab--active .rp-dist-subtab-count { background: rgba(0,0,0,0.07); color: #3a3c42; }
 
 /* Territories */
 .rp-territories {
