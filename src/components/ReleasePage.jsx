@@ -68,6 +68,7 @@ const STORE_STATUS = {
   error:         { color: '#e63a52', label: 'Error'         },
   not_delivered: { color: '#9aa0b0', label: 'Not delivered' },
   not_eligible:  { color: '#9aa0b0', label: 'Not eligible'  },
+  pending:       { color: '#9aa0b0', label: 'Pending'       },
 }
 
 // ─── Store components ─────────────────────────────────────────────────────────
@@ -200,10 +201,16 @@ function TerritoriesTab({ releaseState }) {
   )
 }
 
-function DistributionTab({ releaseState }) {
+function DistributionTab({ releaseState, release }) {
   const [distSubTab, setDistSubTab] = useState('stores')
   const [dialog, setDialog] = useState(null)
   const [storeFilter, setStoreFilter] = useState('all')
+
+  const applyOverride = store => {
+    const ov = release?.storeStatuses?.[store.name]
+    if (!ov) return store
+    return { ...store, status: ov, info: ov === 'pending' ? null : store.info, date: ov === 'pending' ? null : store.date }
+  }
 
   const EMPTY_MESSAGES = {
     draft:  'This release has not been submitted yet. Distribution data will appear once delivered.',
@@ -253,10 +260,12 @@ function DistributionTab({ releaseState }) {
     }
 
     const isPartial = releaseState === 'delivered_partial'
-    const visible = storeFilter === 'all'           ? ALL_STORES
-      : storeFilter === 'delivered'                 ? ALL_STORES.filter(s => s.status === 'delivered')
-      : storeFilter === 'not_delivered'             ? ALL_STORES.filter(s => s.status === 'not_delivered' || s.status === 'not_eligible')
-      : ALL_STORES.filter(s => s.status === 'error')
+    const allStoresEff = ALL_STORES.map(applyOverride)
+    const topStoresEff = TOP_STORES.map(applyOverride)
+    const visible = storeFilter === 'all'           ? allStoresEff
+      : storeFilter === 'delivered'                 ? allStoresEff.filter(s => s.status === 'delivered')
+      : storeFilter === 'not_delivered'             ? allStoresEff.filter(s => s.status === 'not_delivered' || s.status === 'not_eligible')
+      : allStoresEff.filter(s => s.status === 'error')
 
     const FILTER_TABS = [
       { key: 'all',           label: 'All (81)'           },
@@ -278,7 +287,7 @@ function DistributionTab({ releaseState }) {
         <div className="rp-section">
           <span className="rp-section-label">Top stores</span>
           <div className="rp-store-list">
-            {TOP_STORES.map(s => <StoreRow key={s.name} store={s} onArrow={setDialog} />)}
+            {topStoresEff.map(s => <StoreRow key={s.name} store={s} onArrow={setDialog} />)}
           </div>
         </div>
         <div className="rp-section-divider" />
@@ -767,7 +776,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
         ))}
       </div>
 
-      {tab === 'distribution' && <DistributionTab releaseState={releaseState} />}
+      {tab === 'distribution' && <DistributionTab releaseState={releaseState} release={release} />}
       {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} releaseTitle={release.title} trackStatusOverride={trackStatusOverride} statuses={trackStatuses} onConfirmTakedown={handleConfirmTakedown} onCancelTakedown={handleCancelTakedown} />}
       {tab === 'overview'     && <OverviewTab release={release} releaseState={releaseState} effectiveTracklist={effectiveTracklist} />}
       {tab === 'rights'       && <RightsTab />}
