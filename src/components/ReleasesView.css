@@ -78,6 +78,22 @@
   font-family: inherit;
 }
 .search-input::placeholder { color: #9aa0b0; }
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: #e5e7ef;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #5a6070;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s;
+}
+.search-clear:hover { background: #d0d5e4; color: #0f1012; }
 .search-kbd {
   font-size: 11px;
   color: #9aa0b0;

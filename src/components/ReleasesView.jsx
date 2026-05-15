@@ -50,7 +50,12 @@ function Toolbar({ search, onSearch, filters, onFilter }) {
             value={search}
             onChange={e => onSearch(e.target.value)}
           />
-          <span className="search-kbd">⌘K</span>
+          {search
+            ? <button className="search-clear" onClick={() => onSearch('')} aria-label="Clear search">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+              </button>
+            : <span className="search-kbd">⌘K</span>
+          }
         </div>
         <FilterChip label="Account" options={ACCOUNTS} value={filters.account} onChange={v => onFilter('account', v)} multi showSearch avatarType="initials" getMeta={getAccountMeta} />
         <FilterChip label="Artist"  options={ARTISTS}  value={filters.artist}  onChange={v => onFilter('artist',  v)} multi showSearch avatarType="photo" getAvatarSrc={getAvatarSrc} getMeta={getArtistMeta} />
