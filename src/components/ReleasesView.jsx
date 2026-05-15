@@ -164,7 +164,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
           <h1 className="view-title">Releases</h1>
         </div>
         <div className="view-header-right">
-          <button className="btn-export">Export</button>
+          <button className="btn-export">Export releases</button>
         </div>
       </div>
 
