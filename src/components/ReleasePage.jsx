@@ -404,10 +404,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
                 : idx + 1
               }
             </span>
-            <span className="rp-td rp-track-title">
-              {t.title}
-              {t.version && <span className="rp-track-version">{t.version}</span>}
-            </span>
+            <span className="rp-td rp-track-title">{t.title}</span>
             <span className="rp-td">{t.artist || artist}</span>
             {t.isrc ? (
               <span
