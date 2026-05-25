@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { RELEASES } from '../data/catalog'
 import StatusBadge from './StatusBadge'
 import FilterChip from './FilterChip'
+import './ReleasesView.css'
 import './FavoritesView.css'
 
 const STATUS_OPTIONS = ['Delivered', 'Under review', 'Sent to DSPs', 'Not delivered']
