@@ -63,6 +63,14 @@ function TypeIconWithTooltip({ type, subtype }) {
   )
 }
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  const [dd, mm, yyyy] = dateStr.split('/')
+  return `${dd} ${MONTHS[parseInt(mm, 10) - 1]} ${yyyy}`
+}
+
 function getDerivedStatus(release) {
   if (release.status !== 'delivered') return release.status
   const tracklist = release.tracklist
@@ -194,12 +202,12 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
             <span className="release-title">{release.title}</span>
           </div>
           <div className="release-meta">
+            <span className="release-trackcount">{release.trackCount === 0 ? '—' : `${release.trackCount} ${release.trackCount === 1 ? 'track' : 'tracks'}`}</span>
+            <span className="meta-sep">·</span>
             <span
               className="release-artist"
               onClick={e => { e.stopPropagation(); setArtistDialog(true) }}
             >{release.artist}</span>
-            <span className="meta-sep">·</span>
-            <span>{release.trackCount === 0 ? '—' : `${release.trackCount} ${release.trackCount === 1 ? 'track' : 'tracks'}`}</span>
           </div>
         </div>
       </div>
@@ -230,8 +238,8 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
 
       {/* Release date */}
       <div className="release-cell release-cell-date">
-        <span>{release.releaseDate}</span>
-        {release.releaseTime && <span className="mono release-time">{release.releaseTime}</span>}
+        <span className="release-date-value">{formatDate(release.releaseDate)}</span>
+        {release.releaseTime && <span className="release-time-value">{release.releaseTime}</span>}
       </div>
 
       {/* Status */}
