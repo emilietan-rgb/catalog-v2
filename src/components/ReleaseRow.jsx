@@ -106,6 +106,7 @@ function getInfoColor(status, info) {
 function getInfoIcon(info) {
   if (!info) return undefined
   if (info.includes('takedown in progress') || info.includes('taken down')) return 'block'
+  if (info === 'Blacklisted') return 'block'
   if (info === 'Copyright alert') return 'alert'
   return undefined
 }
