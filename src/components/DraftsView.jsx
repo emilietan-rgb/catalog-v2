@@ -6,11 +6,11 @@ import FilterChip from './FilterChip'
 import './ReleasesView.css'
 
 const DRAFTS = [
-  { id:101, title:'Glimmers',               artist:'Aurélie Dumas',   trackCount:1,  upc:null,           type:'music', subtype:null,       account:'Lumière Records', releaseDate:'—',          coverImage:'https://images.unsplash.com/photo-1667833966178-f98135a582f8?q=80&w=400', completeness:30,  completenessLabel:'Tracks missing'      },
-  { id:1,   title:'Summer Call',          artist:'Echo Park',       trackCount:1,  upc:null,           type:'video', subtype:null,       account:'Echo Park',       releaseDate:null,         coverImage:'https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=400', completeness:40,  completenessLabel:'Artwork required'    },
-  { id:2,   title:'Static Dreams',        artist:'Drift State',     trackCount:3,  upc:null,           type:'music', subtype:null,       account:'Lumière Records', releaseDate:'10/04/2026', coverImage:'https://images.unsplash.com/photo-1618609377864-68609b857e90?q=80&w=400', completeness:70,  completenessLabel:'Release date missing'},
-  { id:3,   title:'Solar Wind',           artist:'Echo Park',       trackCount:6,  upc:null,           type:'music', subtype:null,       account:'Echo Park',       releaseDate:'10/04/2026', coverImage:'https://images.unsplash.com/photo-1504704911898-68304a7d2807?q=80&w=400', completeness:100, completenessLabel:'Ready to submit'    },
-  { id:4,   title:'Vinyl Sessions Vol.2', artist:'Various Artists', trackCount:12, upc:null,           type:'music', subtype:'Physical', account:'Lumière Records', releaseDate:null,         coverImage:'https://images.unsplash.com/photo-1461360370896-922624d12aa1?q=80&w=400', completeness:25,  completenessLabel:'Missing fields'     },
+  { id:101, title:'Glimmers',               artist:'Aurélie Dumas',   trackCount:1,  upc:null, type:'music', subtype:null,       account:'Lumière Records', releaseDate:'—',          coverImage:'https://images.unsplash.com/photo-1667833966178-f98135a582f8?q=80&w=400', completion:{ info:true,  stores:true,  art:false, audio:false } },
+  { id:1,   title:'Summer Call',            artist:'Echo Park',       trackCount:1,  upc:null, type:'video', subtype:null,       account:'Echo Park',       releaseDate:null,         coverImage:'https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=400', completion:{ info:true,  stores:false, art:true,  audio:false } },
+  { id:2,   title:'Static Dreams',          artist:'Drift State',     trackCount:3,  upc:null, type:'music', subtype:null,       account:'Lumière Records', releaseDate:'10/04/2026', coverImage:'https://images.unsplash.com/photo-1618609377864-68609b857e90?q=80&w=400', completion:{ info:false, stores:true,  art:true,  audio:false } },
+  { id:3,   title:'Solar Wind',             artist:'Echo Park',       trackCount:6,  upc:null, type:'music', subtype:null,       account:'Echo Park',       releaseDate:'10/04/2026', coverImage:'https://images.unsplash.com/photo-1504704911898-68304a7d2807?q=80&w=400', completion:{ info:true,  stores:true,  art:true,  audio:true  } },
+  { id:4,   title:'Vinyl Sessions Vol.2',   artist:'Various Artists', trackCount:12, upc:null, type:'music', subtype:'Physical', account:'Lumière Records', releaseDate:null,         coverImage:'https://images.unsplash.com/photo-1461360370896-922624d12aa1?q=80&w=400', completion:{ info:false, stores:false, art:true,  audio:false } },
 ]
 
 const ARTISTS  = [...new Set(DRAFTS.map(d => d.artist))].sort()
@@ -76,7 +76,7 @@ export default function DraftsView() {
     })
   }
 
-  const hasReadyToSubmit = DRAFTS.some(d => selected.has(d.id) && d.completeness >= 100)
+  const hasReadyToSubmit = DRAFTS.some(d => selected.has(d.id) && d.completion.info && d.completion.stores && d.completion.art && d.completion.audio)
 
   const bulkActions = [
     ...(hasReadyToSubmit ? [{ label: 'Submit for review', onClick: () => {} }] : []),
@@ -102,8 +102,7 @@ export default function DraftsView() {
           <div className="th">Drafts ({filtered.length})</div>
           <div className="th">Account</div>
           <div className="th">Release date</div>
-          <div className="th">Status</div>
-          <div className="th">Completeness</div>
+          <div className="th">Completion</div>
           <div></div>
         </div>
 

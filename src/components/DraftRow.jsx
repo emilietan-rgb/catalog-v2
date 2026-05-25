@@ -1,5 +1,3 @@
-import StatusBadge from './StatusBadge'
-import CompletenessBar from './CompletenessBar'
 import './ReleaseRow.css'
 import './DraftRow.css'
 
@@ -38,6 +36,31 @@ function TypeIconWithTooltip({ type, subtype }) {
     </span>
   )
   return null
+}
+
+function CompletionDot({ complete }) {
+  return <span className={`completion-dot${complete ? ' completion-dot--green' : ' completion-dot--amber'}`} />
+}
+
+function CompletionPill({ label, complete }) {
+  return (
+    <span className="completion-pill">
+      <CompletionDot complete={complete} />
+      {label}
+    </span>
+  )
+}
+
+function CompletionCell({ completion }) {
+  const { info, stores, art, audio } = completion
+  return (
+    <div className="completion-indicators">
+      <CompletionPill label="Info"   complete={info}   />
+      <CompletionPill label="Stores" complete={stores} />
+      <CompletionPill label="Art"    complete={art}    />
+      <CompletionPill label="Audio"  complete={audio}  />
+    </div>
+  )
 }
 
 export default function DraftRow({ draft, selected, onSelect }) {
@@ -84,12 +107,8 @@ export default function DraftRow({ draft, selected, onSelect }) {
         <span className="release-date-value">{formatDate(draft.releaseDate)}</span>
       </div>
 
-      <div className="release-cell release-cell-status">
-        <StatusBadge status="draft" />
-      </div>
-
-      <div className="release-cell release-cell-completeness">
-        <CompletenessBar pct={draft.completeness} label={draft.completenessLabel} />
+      <div className="release-cell release-cell-completion">
+        <CompletionCell completion={draft.completion} />
       </div>
 
       <div className="release-cell release-cell-actions">
