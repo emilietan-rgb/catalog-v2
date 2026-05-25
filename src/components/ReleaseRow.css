@@ -5,7 +5,7 @@
   width: 100%;
   box-sizing: border-box;
   align-items: center;
-  height: 64px;
+  height: 72px;
   padding: 0 16px;
   border-bottom: 1px solid rgba(0,0,0,0.04);
   background: #fff;
@@ -19,12 +19,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-right: 8px;
 }
 .release-cell-check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
   width: 15px;
   height: 15px;
+  border: 1.5px solid #DADEEA;
+  border-radius: 3px;
+  background: #fff;
   cursor: pointer;
-  accent-color: #0f1012;
+  flex-shrink: 0;
+  transition: background 0.1s, border-color 0.1s;
+}
+.release-cell-check input[type="checkbox"]:checked {
+  background: #0f1012;
+  border-color: #0f1012;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-size: 10px 10px;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 /* Entity cell */
