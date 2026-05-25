@@ -75,28 +75,78 @@ function getTrackDerivedInfo(release) {
   const tracklist = release.tracklist
   if (!tracklist || !tracklist.length) return null
   const allTakenDown = tracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown')
-  if (allTakenDown) return { text: 'In progress', color: '#b45309' }
+  if (allTakenDown) return { text: 'Release taken down', color: '#0F1012', icon: 'renew' }
   const progressCount = tracklist.filter(t => t.status === 'takedown-progress').length
   if (progressCount > 0) {
-    return { text: `Removing ${progressCount} ${progressCount === 1 ? 'track' : 'tracks'}`, color: '#b45309' }
+    return { text: `${progressCount} ${progressCount === 1 ? 'track' : 'tracks'} taken down`, color: '#0F1012', icon: 'renew' }
   }
   const takenDownCount = tracklist.filter(t => t.status === 'takedown').length
   if (takenDownCount > 0) {
-    return { text: `${takenDownCount} ${takenDownCount === 1 ? 'track' : 'tracks'} taken down`, color: '#b45309' }
+    return { text: `${takenDownCount} ${takenDownCount === 1 ? 'track' : 'tracks'} taken down`, color: '#0F1012', icon: 'block' }
   }
   return null
 }
 
 function getInfoColor(status, info) {
   if (!info) return '#9aa0b0'
-  if (status === 'action') return '#e63a52'
-  if (info.includes('taken down') || info === 'In progress') return '#b45309'
+  if (status === 'action') return '#0F1012'
+  if (info.includes('taken down') || info.includes('takedown in progress')) return '#0F1012'
   return '#9aa0b0'
 }
 
-function InfoLine({ text, color }) {
+function getInfoIcon(info) {
+  if (!info) return undefined
+  if (info.includes('takedown in progress') || info.includes('taken down')) return 'block'
+  return undefined
+}
+
+function getInfoVariant(status, info) {
+  if (status === 'action') return 'action'
+  if (info && (info.includes('takedown in progress') || info.includes('taken down'))) return 'action'
+  return undefined
+}
+
+function AlertIcon({ color }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
+      <circle cx="8" cy="8" r="6"/>
+      <path d="M8 5v3.5"/>
+      <circle cx="8" cy="11" r="0.6" fill={color} stroke="none"/>
+    </svg>
+  )
+}
+
+function BlockIcon({ color }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
+      <circle cx="8" cy="8" r="6"/>
+      <path d="M3.5 3.5l9 9"/>
+    </svg>
+  )
+}
+
+function RenewIcon({ color }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M13 8a5 5 0 1 1-1.5-3.5"/>
+      <path d="M11 2l1.5 2.5L10 6"/>
+    </svg>
+  )
+}
+
+function InfoLine({ text, color, icon, variant }) {
   if (!text) return null
-  return <span className="release-info-line" style={{ color: color || '#9aa0b0' }}>{text}</span>
+  const cls = `release-info-line${variant ? ` release-info-line--${variant}` : ''}`
+  const iconEl = icon === 'alert' ? <AlertIcon color={color || '#9aa0b0'} />
+               : icon === 'renew' ? <RenewIcon color={color || '#9aa0b0'} />
+               : icon === 'block' ? <BlockIcon color={color || '#9aa0b0'} />
+               : null
+  return (
+    <span className={cls} style={{ color: color || '#9aa0b0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+      {iconEl}
+      {text}
+    </span>
+  )
 }
 
 
@@ -164,16 +214,17 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
 
       {/* Status */}
       <div className="release-cell release-cell-status">
-        <StatusBadge status={derivedStatus} />
+        <StatusBadge status={derivedStatus} count={derivedStatus === 'delivered' ? 52 : undefined} />
       </div>
 
       {/* Information */}
       <div className="release-cell release-cell-info">
         {(() => {
+          if (derivedStatus === 'review') return null
           const derived = getTrackDerivedInfo(release)
           return derived
-            ? <InfoLine text={derived.text} color={derived.color} />
-            : <InfoLine text={release.info} color={getInfoColor(derivedStatus, release.info)} />
+            ? <InfoLine text={derived.text} color={derived.color} icon={derived.icon} variant="action" />
+            : <InfoLine text={release.info} color={getInfoColor(derivedStatus, release.info)} icon={derivedStatus === 'action' ? 'alert' : getInfoIcon(release.info)} variant={getInfoVariant(derivedStatus, release.info)} />
         })()}
       </div>
 

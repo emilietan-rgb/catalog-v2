@@ -190,7 +190,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
           <div className="th">Account</div>
           <div className="th">Release date</div>
           <div className="th">Status</div>
-          <div className="th">Information</div>
+          <div className="th">Alerts</div>
           <div></div>
         </div>
 
