@@ -145,7 +145,7 @@
 
 .list-table-header {
   display: grid;
-  grid-template-columns: 32px 3fr 1fr 100px 130px 180px 40px;
+  grid-template-columns: 32px 3fr 1fr 140px 100px 130px 180px 40px;
   align-items: center;
   padding: 0 16px;
   height: 36px;

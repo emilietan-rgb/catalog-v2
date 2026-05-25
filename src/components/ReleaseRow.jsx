@@ -155,6 +155,14 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
   const hasAction = release.status === 'action'
   const [artistDialog, setArtistDialog] = useState(false)
   const [accountDialog, setAccountDialog] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  function handleCopyUpc(e) {
+    e.stopPropagation()
+    navigator.clipboard.writeText(release.upc)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
 
   return (
     <div className={`release-row${selected ? ' selected' : ''}${hasAction ? ' has-action' : ''}`} onClick={onOpen}>
@@ -192,10 +200,24 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
             >{release.artist}</span>
             <span className="meta-sep">·</span>
             <span>{release.trackCount === 0 ? '—' : `${release.trackCount} ${release.trackCount === 1 ? 'track' : 'tracks'}`}</span>
-            <span className="meta-sep">·</span>
-            <span className="mono release-upc">{release.upc || '—'}</span>
           </div>
         </div>
+      </div>
+
+      {/* UPC */}
+      <div className="release-cell release-cell-upc">
+        <span>{release.upc || '—'}</span>
+        {release.upc && (
+          <div className="upc-copy-wrap">
+            <button className="upc-copy-btn" onClick={handleCopyUpc}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1"/>
+                <path d="M3 11V3a1 1 0 0 1 1-1h7"/>
+              </svg>
+            </button>
+            {copied && <span className="upc-copied-tooltip">Copied!</span>}
+          </div>
+        )}
       </div>
 
       {/* Account */}

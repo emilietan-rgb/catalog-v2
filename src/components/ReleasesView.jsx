@@ -187,6 +187,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
         <div className="list-table-header">
           <div></div>
           <div className="th">Releases ({filtered.length})</div>
+          <div className="th">UPC</div>
           <div className="th">Account</div>
           <div className="th">Release date</div>
           <div className="th">Status</div>
