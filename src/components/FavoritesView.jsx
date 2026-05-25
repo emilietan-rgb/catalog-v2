@@ -179,7 +179,7 @@ export default function FavoritesView({ favorites = [], onToggleFavorite, onOpen
             <input
               className="search-input"
               type="text"
-              placeholder="Search favorites…"
+              placeholder="Search for release, track, ID..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />

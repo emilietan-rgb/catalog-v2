@@ -39,7 +39,7 @@ function Toolbar({ search, onSearch, filters, onFilter }) {
           <input
             className="search-input"
             type="text"
-            placeholder="Search drafts…"
+            placeholder="Search for release, track, ID..."
             value={search}
             onChange={e => onSearch(e.target.value)}
           />
