@@ -1,7 +1,9 @@
 .draft-row {
   cursor: pointer;
   display: grid;
-  grid-template-columns: 32px 3fr 1fr 100px 130px 180px 40px;
+  grid-template-columns: 32px 2fr 1fr 1fr 1fr 1fr 40px;
+  width: 100%;
+  box-sizing: border-box;
   align-items: center;
   height: 64px;
   padding: 0 16px;
@@ -11,3 +13,9 @@
 }
 .draft-row:hover { background: #fafaf9; }
 .draft-row.selected { background: #f5f4f2; }
+
+.list-container:has(.draft-row) .list-table-header {
+  grid-template-columns: 32px 2fr 1fr 1fr 1fr 1fr 40px;
+}
+
+.release-cell-completeness { padding-right: 0; align-items: flex-start; }

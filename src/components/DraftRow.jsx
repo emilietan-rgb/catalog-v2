@@ -1,6 +1,15 @@
 import StatusBadge from './StatusBadge'
 import CompletenessBar from './CompletenessBar'
+import './ReleaseRow.css'
 import './DraftRow.css'
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  const [dd, mm, yyyy] = dateStr.split('/')
+  if (!dd || !mm || !yyyy) return dateStr
+  return `${dd} ${MONTHS[parseInt(mm, 10) - 1]} ${yyyy}`
+}
 
 function TypeIconWithTooltip({ type, subtype }) {
   if (subtype === 'Physical') return (
@@ -60,10 +69,9 @@ export default function DraftRow({ draft, selected, onSelect }) {
             <span className="release-title">{draft.title}</span>
           </div>
           <div className="release-meta">
-            <span className="release-artist">{draft.artist}</span>
+            <span className="release-trackcount">{draft.trackCount === 0 ? '—' : `${draft.trackCount} ${draft.trackCount === 1 ? 'track' : 'tracks'}`}</span>
             <span className="meta-sep">·</span>
-            <span>{draft.trackCount === 0 ? '—' : `${draft.trackCount} ${draft.trackCount === 1 ? 'track' : 'tracks'}`}</span>
-            {draft.upc && <><span className="meta-sep">·</span><span className="mono release-upc">{draft.upc}</span></>}
+            <span className="release-artist">{draft.artist}</span>
           </div>
         </div>
       </div>
@@ -73,14 +81,14 @@ export default function DraftRow({ draft, selected, onSelect }) {
       </div>
 
       <div className="release-cell release-cell-date">
-        <span>{draft.releaseDate || '—'}</span>
+        <span className="release-date-value">{formatDate(draft.releaseDate)}</span>
       </div>
 
       <div className="release-cell release-cell-status">
         <StatusBadge status="draft" />
       </div>
 
-      <div className="release-cell">
+      <div className="release-cell release-cell-completeness">
         <CompletenessBar pct={draft.completeness} label={draft.completenessLabel} />
       </div>
 

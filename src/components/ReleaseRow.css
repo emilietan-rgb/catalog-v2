@@ -1,7 +1,9 @@
 .release-row {
   cursor: pointer;
   display: grid;
-  grid-template-columns: 32px 3fr 1fr 140px 100px 130px 180px 40px;
+  grid-template-columns: 32px 2fr 1fr 1fr 1fr 1fr 1fr 40px;
+  width: 100%;
+  box-sizing: border-box;
   align-items: center;
   height: 64px;
   padding: 0 16px;
@@ -141,7 +143,8 @@
   min-width: 0;
   padding-right: 16px;
 }
-.release-cell-account { font-size: 14px; font-weight: 400; color: #27282c; overflow: hidden; }
+.release-cell-account { font-size: 14px; font-weight: 400; color: #27282c; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.release-cell-info    { padding-right: 0; align-items: flex-start; }
 .release-cell-upc     { font-size: 14px; font-weight: 400; color: #0F1012; display: flex; flex-direction: row; align-items: center; gap: 6px; }
 
 .upc-copy-wrap {
