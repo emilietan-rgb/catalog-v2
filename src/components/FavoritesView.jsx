@@ -4,13 +4,35 @@ import StatusBadge from './StatusBadge'
 import FilterChip from './FilterChip'
 import './FavoritesView.css'
 
-const STATUS_OPTIONS = ['Delivered', 'Under review', 'Action required', 'Sent to DSPs', 'Taken down']
+const STATUS_OPTIONS = ['Delivered', 'Under review', 'Sent to DSPs', 'Not delivered']
 const STATUS_LABEL_MAP = {
   delivered: 'Delivered',
   review:    'Under review',
-  action:    'Action required',
+  action:    'Not delivered',
   sent:      'Sent to DSPs',
-  takedown:  'Taken down',
+  takedown:  'Not delivered',
+}
+
+const ALERT_GROUPS = [
+  { label: 'Issues',    options: ['Back to producer', 'Copyright alert', 'Blacklisted'] },
+  { label: 'Takedowns', options: ['Track taken down', 'Release taken down'] },
+]
+
+function getAlertCategories(release) {
+  const tracklist = release.tracklist
+  if (tracklist && tracklist.length) {
+    const allTakenDown = tracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown')
+    if (allTakenDown) return ['Release taken down']
+    const hasTrackTakedown = tracklist.some(t => t.status === 'takedown-progress' || t.status === 'takedown')
+    if (hasTrackTakedown) return ['Track taken down']
+  }
+  const info = release.info
+  if (!info) return []
+  if (info.includes('taken down') || info.includes('takedown')) return ['Track taken down']
+  if (info === 'Correction requested' || info === 'Back to producer') return ['Back to producer']
+  if (info === 'Copyright alert') return ['Copyright alert']
+  if (info === 'Blacklisted') return ['Blacklisted']
+  return []
 }
 
 const ARTIST_AVATAR_SEEDS = {
@@ -53,7 +75,7 @@ function HeartFilledIcon() {
 
 export default function FavoritesView({ favorites = [], onToggleFavorite, onOpenRelease }) {
   const [search, setSearch]   = useState('')
-  const [filters, setFilters] = useState({ account: [], artist: [], status: [], date: null })
+  const [filters, setFilters] = useState({ account: [], artist: [], status: [], alerts: [], date: null })
 
   const items = RELEASES.filter(r => favorites.includes(r.id))
 
@@ -68,7 +90,7 @@ export default function FavoritesView({ favorites = [], onToggleFavorite, onOpen
   const getAccountMeta= name => { const c = accountReleaseCounts[name]; return c ? `${c} release${c !== 1 ? 's' : ''}` : null }
 
   const handleFilter = (key, value) => setFilters(f => ({ ...f, [key]: value }))
-  const clearFilters = () => setFilters({ account: [], artist: [], status: [], date: null })
+  const clearFilters = () => setFilters({ account: [], artist: [], status: [], alerts: [], date: null })
 
   const parseDate = str => {
     if (!str || str === '—') return null
@@ -104,7 +126,7 @@ export default function FavoritesView({ favorites = [], onToggleFavorite, onOpen
     return true
   }
 
-  const hasActiveFilter = filters.account.length > 0 || filters.artist.length > 0 || filters.status.length > 0 || filters.date
+  const hasActiveFilter = filters.account.length > 0 || filters.artist.length > 0 || filters.status.length > 0 || filters.alerts.length > 0 || filters.date
 
   const filtered = items.filter(r => {
     if (search) {
@@ -113,8 +135,12 @@ export default function FavoritesView({ favorites = [], onToggleFavorite, onOpen
     }
     if (filters.account.length && !filters.account.includes(r.account)) return false
     if (filters.artist.length  && !filters.artist.includes(r.artist))   return false
+    if (filters.date   && !matchesDateFilter(r.releaseDate, filters.date)) return false
     if (filters.status.length  && !filters.status.includes(STATUS_LABEL_MAP[r.status])) return false
-    if (!matchesDateFilter(r.releaseDate, filters.date)) return false
+    if (filters.alerts.length) {
+      const cats = getAlertCategories(r)
+      if (!filters.alerts.some(a => cats.includes(a))) return false
+    }
     return true
   })
 
@@ -165,8 +191,9 @@ export default function FavoritesView({ favorites = [], onToggleFavorite, onOpen
           </div>
           <FilterChip label="Account" options={ACCOUNTS} value={filters.account} onChange={v => handleFilter('account', v)} multi showSearch avatarType="initials" getMeta={getAccountMeta} />
           <FilterChip label="Artist"  options={ARTISTS}  value={filters.artist}  onChange={v => handleFilter('artist',  v)} multi showSearch avatarType="photo" getAvatarSrc={getAvatarSrc} getMeta={getArtistMeta} />
-          <FilterChip label="Status"  options={STATUS_OPTIONS} value={filters.status} onChange={v => handleFilter('status', v)} multi />
           <FilterChip label="Release date" value={filters.date} onChange={v => handleFilter('date', v)} type="date" />
+          <FilterChip label="Status"  options={STATUS_OPTIONS} value={filters.status} onChange={v => handleFilter('status', v)} multi />
+          <FilterChip label="Alerts" groups={ALERT_GROUPS} value={filters.alerts} onChange={v => handleFilter('alerts', v)} multi />
           {(search || hasActiveFilter) && (
             <button className="btn-clear-filters" onClick={() => { clearFilters(); setSearch('') }}>Clear</button>
           )}

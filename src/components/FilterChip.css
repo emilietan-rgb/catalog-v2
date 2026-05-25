@@ -162,6 +162,21 @@
 }
 .fc-checkbox--on { background: #0f1012; border-color: #0f1012; }
 
+/* Grouped options */
+.fc-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9aa0b0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 6px 10px 2px;
+}
+.fc-group-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.06);
+  margin: 4px 0;
+}
+
 /* Date picker */
 .fc-date-body { display: flex; flex-direction: column; }
 

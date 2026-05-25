@@ -17,6 +17,35 @@ function Checkbox({ checked }) {
   )
 }
 
+function GroupedListDropdown({ groups, value, onChange }) {
+  const isSelected = o => value.includes(o)
+  const handleToggle = o => {
+    onChange(isSelected(o) ? value.filter(v => v !== o) : [...value, o])
+  }
+  return (
+    <div className="fc-options-list">
+      {groups.map((group, gi) => (
+        <div key={group.label}>
+          {gi > 0 && <div className="fc-group-divider" />}
+          <div className="fc-group-label">{group.label}</div>
+          {group.options.map(opt => (
+            <button
+              key={opt}
+              className="fc-option"
+              onMouseDown={e => { e.preventDefault(); handleToggle(opt) }}
+            >
+              <span className="fc-option-text">
+                <span className="fc-option-name">{opt}</span>
+              </span>
+              <Checkbox checked={isSelected(opt)} />
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function ListDropdown({ options, value, onChange, multi, showSearch, avatarType, getAvatarSrc, getMeta }) {
   const [q, setQ] = useState('')
   const vis = q ? options.filter(o => o.toLowerCase().includes(q.toLowerCase())) : options
@@ -133,7 +162,7 @@ function DateDropdown({ value, onChange }) {
 export default function FilterChip({
   label, options = [], value, onChange,
   multi, showSearch, avatarType, getAvatarSrc, getMeta,
-  type
+  type, groups
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -205,9 +234,11 @@ export default function FilterChip({
       </button>
 
       {open && (
-        <div className={`fc-dropdown${type === 'date' ? ' fc-dropdown--date' : ''}${avatarType || showSearch ? ' fc-dropdown--wide' : ''}`}>
+        <div className={`fc-dropdown${type === 'date' ? ' fc-dropdown--date' : ''}${avatarType || showSearch || groups ? ' fc-dropdown--wide' : ''}`}>
           {type === 'date' ? (
             <DateDropdown value={value} onChange={handleDateChange} />
+          ) : groups ? (
+            <GroupedListDropdown groups={groups} value={value} onChange={handleListChange} />
           ) : (
             <ListDropdown
               options={options}

@@ -9,7 +9,7 @@ import { RELEASES } from '../data/catalog'
 
 const ARTISTS  = [...new Set(RELEASES.map(r => r.artist))].sort()
 const ACCOUNTS = [...new Set(RELEASES.map(r => r.account))].sort()
-const STATUS_OPTIONS = ['Delivered', 'Under review', 'Action required', 'Sent to DSPs', 'Taken down']
+const STATUS_OPTIONS = ['Delivered', 'Under review', 'Sent to DSPs', 'Not delivered']
 
 const ARTIST_AVATAR_SEEDS = {
   'Aurélie Dumas':     'aurelie_av',
@@ -28,9 +28,31 @@ const ACCOUNT_RELEASE_COUNTS = RELEASES.reduce((acc, r) => { acc[r.account] = (a
 const STATUS_LABEL_MAP = {
   delivered: 'Delivered',
   review:    'Under review',
-  action:    'Action required',
+  action:    'Not delivered',
   sent:      'Sent to DSPs',
-  takedown:  'Taken down',
+  takedown:  'Not delivered',
+}
+
+const ALERT_GROUPS = [
+  { label: 'Issues',    options: ['Back to producer', 'Copyright alert', 'Blacklisted'] },
+  { label: 'Takedowns', options: ['Track taken down', 'Release taken down'] },
+]
+
+function getAlertCategories(release) {
+  const tracklist = release.tracklist
+  if (tracklist && tracklist.length) {
+    const allTakenDown = tracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown')
+    if (allTakenDown) return ['Release taken down']
+    const hasTrackTakedown = tracklist.some(t => t.status === 'takedown-progress' || t.status === 'takedown')
+    if (hasTrackTakedown) return ['Track taken down']
+  }
+  const info = release.info
+  if (!info) return []
+  if (info.includes('taken down') || info.includes('takedown')) return ['Track taken down']
+  if (info === 'Correction requested' || info === 'Back to producer') return ['Back to producer']
+  if (info === 'Copyright alert') return ['Copyright alert']
+  if (info === 'Blacklisted') return ['Blacklisted']
+  return []
 }
 
 function Toolbar({ search, onSearch, filters, onFilter, onClearFilters }) {
@@ -59,9 +81,10 @@ function Toolbar({ search, onSearch, filters, onFilter, onClearFilters }) {
         </div>
         <FilterChip label="Account" options={ACCOUNTS} value={filters.account} onChange={v => onFilter('account', v)} multi showSearch avatarType="initials" getMeta={getAccountMeta} />
         <FilterChip label="Artist"  options={ARTISTS}  value={filters.artist}  onChange={v => onFilter('artist',  v)} multi showSearch avatarType="photo" getAvatarSrc={getAvatarSrc} getMeta={getArtistMeta} />
-        <FilterChip label="Status"  options={STATUS_OPTIONS} value={filters.status} onChange={v => onFilter('status', v)} multi />
         <FilterChip label="Release date" value={filters.date} onChange={v => onFilter('date', v)} type="date" />
-        {(filters.account.length > 0 || filters.artist.length > 0 || filters.status.length > 0 || filters.date) && (
+        <FilterChip label="Status"  options={STATUS_OPTIONS} value={filters.status} onChange={v => onFilter('status', v)} multi />
+        <FilterChip label="Alerts" groups={ALERT_GROUPS} value={filters.alerts} onChange={v => onFilter('alerts', v)} multi />
+        {(filters.account.length > 0 || filters.artist.length > 0 || filters.status.length > 0 || filters.alerts.length > 0 || filters.date) && (
           <button className="btn-clear-filters" onClick={onClearFilters}>Clear</button>
         )}
       </div>
@@ -73,7 +96,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
   const [selected, setSelected] = useState(new Set())
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [filters, setFilters] = useState({ account: [], artist: [], status: [], date: null })
+  const [filters, setFilters] = useState({ account: [], artist: [], status: [], alerts: [], date: null })
 
   const handleFilter = (key, value) => { setFilters(f => ({ ...f, [key]: value })); setPage(1) }
 
@@ -123,6 +146,10 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
     if (filters.account.length && !filters.account.includes(r.account)) return false
     if (filters.artist.length  && !filters.artist.includes(r.artist))   return false
     if (filters.status.length  && !filters.status.includes(STATUS_LABEL_MAP[r.status])) return false
+    if (filters.alerts.length) {
+      const cats = getAlertCategories(r)
+      if (!filters.alerts.some(a => cats.includes(a))) return false
+    }
     if (!matchesDateFilter(r.releaseDate, filters.date)) return false
     return true
   }).sort((a, b) => {
@@ -181,7 +208,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
         </div>
       </div>
 
-      <Toolbar search={search} onSearch={setSearch} filters={filters} onFilter={handleFilter} onClearFilters={() => { setFilters({ account: [], artist: [], status: [], date: null }); setPage(1) }} />
+      <Toolbar search={search} onSearch={setSearch} filters={filters} onFilter={handleFilter} onClearFilters={() => { setFilters({ account: [], artist: [], status: [], alerts: [], date: null }); setPage(1) }} />
 
       <div className="list-container">
         <div className="list-table-header">

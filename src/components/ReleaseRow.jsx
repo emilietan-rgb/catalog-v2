@@ -99,18 +99,21 @@ function getInfoColor(status, info) {
   if (!info) return '#9aa0b0'
   if (status === 'action') return '#0F1012'
   if (info.includes('taken down') || info.includes('takedown in progress')) return '#0F1012'
+  if (info === 'Copyright alert') return '#0F1012'
   return '#9aa0b0'
 }
 
 function getInfoIcon(info) {
   if (!info) return undefined
   if (info.includes('takedown in progress') || info.includes('taken down')) return 'block'
+  if (info === 'Copyright alert') return 'alert'
   return undefined
 }
 
 function getInfoVariant(status, info) {
   if (status === 'action') return 'action'
   if (info && (info.includes('takedown in progress') || info.includes('taken down'))) return 'action'
+  if (info === 'Copyright alert') return 'action'
   return undefined
 }
 
@@ -254,7 +257,7 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
           const derived = getTrackDerivedInfo(release)
           return derived
             ? <InfoLine text={derived.text} color={derived.color} icon={derived.icon} variant="action" />
-            : <InfoLine text={release.info} color={getInfoColor(derivedStatus, release.info)} icon={derivedStatus === 'action' ? 'alert' : getInfoIcon(release.info)} variant={getInfoVariant(derivedStatus, release.info)} />
+            : <InfoLine text={release.info === 'Correction requested' ? 'Back to producer' : release.info} color={getInfoColor(derivedStatus, release.info)} icon={derivedStatus === 'action' ? 'alert' : getInfoIcon(release.info)} variant={getInfoVariant(derivedStatus, release.info)} />
         })()}
       </div>
 
