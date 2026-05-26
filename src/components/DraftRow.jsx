@@ -111,9 +111,6 @@ export default function DraftRow({ draft, selected, onSelect }) {
         <CompletionCell completion={draft.completion} />
       </div>
 
-      <div className="release-cell release-cell-actions">
-        <button className="row-menu-btn" onClick={e => e.stopPropagation()}>···</button>
-      </div>
     </div>
   )
 }

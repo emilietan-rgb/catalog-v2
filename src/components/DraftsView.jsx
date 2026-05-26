@@ -103,7 +103,6 @@ export default function DraftsView() {
           <div className="th">Account</div>
           <div className="th">Release date</div>
           <div className="th">Completion</div>
-          <div></div>
         </div>
 
         <div className="list-rows">

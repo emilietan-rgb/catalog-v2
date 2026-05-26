@@ -1,7 +1,7 @@
 .draft-row {
   cursor: pointer;
   display: grid;
-  grid-template-columns: 32px 2fr 1fr 1fr 1fr 40px;
+  grid-template-columns: 32px 2fr 1fr 1fr 1fr;
   width: 100%;
   box-sizing: border-box;
   align-items: center;
@@ -15,7 +15,14 @@
 .draft-row.selected { background: #f5f4f2; }
 
 .list-container:has(.draft-row) .list-table-header {
-  grid-template-columns: 32px 2fr 1fr 1fr 1fr 40px;
+  grid-template-columns: 32px 2fr 1fr 1fr 1fr;
+}
+
+@media (min-width: 1440px) {
+  .draft-row,
+  .list-container:has(.draft-row) .list-table-header {
+    grid-template-columns: 32px 2fr 1fr 1fr 260px;
+  }
 }
 
 .release-cell-completion { padding-right: 0; align-items: flex-start; }
@@ -23,19 +30,20 @@
 .completion-indicators {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 12px;
 }
 .completion-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  height: 24px;
+  font-size: 14px;
   font-weight: 400;
-  color: #3a3c42;
-  background: #f3f4f8;
-  border: 1px solid #e5e7ef;
-  border-radius: 99px;
-  padding: 2px 7px 2px 5px;
+  color: #0F1012;
+  background: transparent;
+  border: 1px solid #EBEFF5;
+  border-radius: 4px;
+  padding: 2px 6px;
   white-space: nowrap;
 }
 .completion-dot {
@@ -44,8 +52,8 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
-.completion-dot--green { background: #22c55e; }
-.completion-dot--amber { background: #f59e0b; }
+.completion-dot--green { background: #189C4C; }
+.completion-dot--amber { background: #FF852F; }
 .completion-ready {
   font-size: 13px;
   font-weight: 500;
