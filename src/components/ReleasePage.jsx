@@ -575,6 +575,12 @@ const CircleXIcon = () => (
   </svg>
 )
 
+const EntityTag = ({ name }) => (
+  <span className="rp-ctx-banner-entity">{name || '<name>'}</span>
+)
+
+const DOT = ' · '
+
 function Banner({ variant, icon, title, sub, action }) {
   return (
     <div className={`rp-ctx-banner rp-ctx-banner--${variant}`}>
@@ -596,14 +602,15 @@ function ContextBanner({ releaseState, release }) {
     const takenDown = (release.tracklist || []).filter(t => t.status === 'takedown' || t.status === 'takedown-progress')
     const count = takenDown.length
     const first = takenDown[0]
-    const titleParts = [`${count} track${count !== 1 ? 's' : ''} taken down`]
-    if (first?.takedownInitiated) titleParts.push(`Initiated ${first.takedownInitiated}`)
-    if (first?.takedownBy)        titleParts.push(`by ${first.takedownBy}`)
     return (
       <Banner
         variant="neutral"
         icon={<InfoCircleIcon />}
-        title={titleParts.join(' · ')}
+        title={<>
+          {count} track{count !== 1 ? 's' : ''} taken down
+          {first?.takedownInitiated && <>{DOT}Initiated {first.takedownInitiated}</>}
+          {first?.takedownBy        && <>{DOT}by <EntityTag name={first.takedownBy} /></>}
+        </>}
         sub={first?.takedownReason || null}
       />
     )
@@ -615,7 +622,7 @@ function ContextBanner({ releaseState, release }) {
       <Banner
         variant="warning"
         icon={<TriangleIcon />}
-        title={`Copyright alert on ${store} · ${date}`}
+        title={<>Copyright alert on <EntityTag name={store} />{DOT}{date}</>}
         sub={`Proof uploaded: ${proofUploaded ? 'Yes' : 'No'}`}
         action={<button className="rp-ctx-banner-link">See more →</button>}
       />
@@ -624,11 +631,12 @@ function ContextBanner({ releaseState, release }) {
 
   if (releaseState === 'review') {
     const date = release.submittedDate || release.releaseDate || '—'
+    const reviewLabel = release.info || 'Under review by Believe'
     return (
       <Banner
         variant="neutral"
         icon={<InfoCircleIcon />}
-        title={`Submitted on ${date} · Under review by Believe`}
+        title={`Submitted on ${date} · ${reviewLabel}`}
       />
     )
   }
@@ -651,30 +659,33 @@ function ContextBanner({ releaseState, release }) {
       return <Banner variant="error" icon={<CircleXIcon />} title="Not delivered · Blacklisted" />
     }
     const corrDate = release.correctionDate || '—'
-    const subParts = [
-      release.correctionReason,
-      release.requestedBy && `Requested by ${release.requestedBy}`,
-    ].filter(Boolean)
+    const corrTitle = release.info || 'Correction requested'
+    const showFixBtn = release.info === 'Correction requested' || !release.info
     return (
       <Banner
         variant="warning"
         icon={<TriangleIcon />}
-        title={`Correction requested · ${corrDate}`}
-        sub={subParts.join(' · ')}
-        action={<button className="rp-ctx-banner-btn">Fix and resubmit</button>}
+        title={`${corrTitle} · ${corrDate}`}
+        sub={<>
+          {release.correctionReason}
+          {release.correctionReason && release.requestedBy && DOT}
+          {release.requestedBy && <>Requested by <EntityTag name={release.requestedBy} /></>}
+        </>}
+        action={showFixBtn ? <button className="rp-ctx-banner-btn">Fix and resubmit</button> : null}
       />
     )
   }
 
   if (releaseState === 'takedown_progress') {
-    const titleParts = ['Takedown in progress']
-    if (release.takedownInitiated) titleParts.push(`Initiated ${release.takedownInitiated}`)
-    if (release.takedownBy)        titleParts.push(`by ${release.takedownBy}`)
     return (
       <Banner
         variant="error"
         icon={<CircleXIcon />}
-        title={titleParts.join(' · ')}
+        title={<>
+          Takedown in progress
+          {release.takedownInitiated && <>{DOT}Initiated {release.takedownInitiated}</>}
+          {release.takedownBy        && <>{DOT}by <EntityTag name={release.takedownBy} /></>}
+        </>}
         sub={release.takedownReason || null}
       />
     )
@@ -682,17 +693,17 @@ function ContextBanner({ releaseState, release }) {
 
   if (releaseState === 'takedown_done' || releaseState === 'tracks_all_takedown') {
     const takenDate = release.takenDownDate || release.takedownInitiated || '—'
-    const subParts = [
-      release.takedownInitiated && `Initiated ${release.takedownInitiated}`,
-      release.takedownBy        && `by ${release.takedownBy}`,
-      release.takedownReason    && `Reason: ${release.takedownReason}`,
-    ].filter(Boolean)
     return (
       <Banner
         variant="error"
         icon={<CircleXIcon />}
         title={`Taken down on ${takenDate}`}
-        sub={subParts.join(' · ')}
+        sub={<>
+          {release.takedownInitiated && <>Initiated {release.takedownInitiated}</>}
+          {release.takedownInitiated && release.takedownBy && DOT}
+          {release.takedownBy        && <>by <EntityTag name={release.takedownBy} /></>}
+          {release.takedownReason    && <>{DOT}Reason: {release.takedownReason}</>}
+        </>}
       />
     )
   }
@@ -810,6 +821,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
   const [artistDialog, setArtistDialog] = useState(false)
   const [releaseTakedownModal, setReleaseTakedownModal] = useState(false)
   const [moreMenuOpen, setMoreMenuOpen] = useState(false)
+  const [coverPreview, setCoverPreview] = useState(false)
 
   useEffect(() => {
     const handler = () => setMoreMenuOpen(false)
@@ -851,12 +863,16 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
 
       <div className="rp-header">
         <div className="rp-header-left">
-          <div className="rp-cover">
+          <div
+            className={`rp-cover${release.coverImage ? ' rp-cover--clickable' : ''}`}
+            onClick={() => release.coverImage && setCoverPreview(true)}
+          >
             {release.coverImage
-              ? <img src={release.coverImage} alt={release.title} width="80" height="80" />
+              ? <img src={release.coverImage} alt={release.title} width="96" height="96" />
               : <div className="rp-cover-placeholder" />}
           </div>
           <div className="rp-header-identity">
+            <StatusBadge status={badgeStatus} />
             <div className="rp-header-title-row">
               <h1 className="rp-title">{release.title}</h1>
             </div>
@@ -867,10 +883,6 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
           <div className="rp-header-stat">
             <span className="rp-header-stat-label">Release date</span>
             <span className="rp-header-stat-value">{release.releaseDate || '—'}</span>
-          </div>
-          <div className="rp-header-stat">
-            <span className="rp-header-stat-label">Status</span>
-            <StatusBadge status={badgeStatus} />
           </div>
           <div className="rp-header-stat">
             <span className="rp-header-stat-label">Account</span>
@@ -943,6 +955,22 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
             <p className="rp-dialog-body">This will redirect you to the artist page for {release.artist}.</p>
             <p className="rp-dialog-note">Prototype — link not active</p>
           </div>
+        </div>
+      )}
+
+      {coverPreview && (
+        <div className="rp-cover-preview-overlay" onMouseDown={() => setCoverPreview(false)}>
+          <button className="rp-cover-preview-close" onMouseDown={e => e.stopPropagation()} onClick={() => setCoverPreview(false)} aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M3 3l10 10M13 3L3 13"/>
+            </svg>
+          </button>
+          <img
+            className="rp-cover-preview-img"
+            src={release.coverImage}
+            alt={release.title}
+            onMouseDown={e => e.stopPropagation()}
+          />
         </div>
       )}
 
