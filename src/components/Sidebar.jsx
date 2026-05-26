@@ -56,7 +56,7 @@ export default function Sidebar({ activeView, onNavigate, favoritesCount = 0 }) 
           Search
         </button>
 
-        <button className="nav-item">
+        <button className="nav-item nav-item--section-start">
           <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
           Overview
         </button>
@@ -65,7 +65,13 @@ export default function Sidebar({ activeView, onNavigate, favoritesCount = 0 }) 
           className={`nav-item nav-item--expandable${catalogOpen ? ' nav-item--open' : ''}`}
           onClick={() => setCatalogOpen(o => !o)}
         >
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M2 6h12M2 10h12"/></svg>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="1" width="10" height="11" rx="1.5"/>
+            <rect x="2" y="4" width="10" height="11" rx="1.5"/>
+            <path d="M7 11V8.5l3-.8V10"/>
+            <circle cx="6.5" cy="11" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="9.5" cy="10" r="1" fill="currentColor" stroke="none"/>
+          </svg>
           Catalog
           <Chevron />
         </button>
