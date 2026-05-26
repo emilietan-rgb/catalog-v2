@@ -747,7 +747,6 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
           </div>
         </div>
         <div className="rp-header-actions">
-          <button className="rp-action-btn">Edit release</button>
           <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
             <button className="rp-action-btn rp-action-btn--more" onClick={() => setMoreMenuOpen(o => !o)}>···</button>
             {moreMenuOpen && release.status === 'delivered' && !allTakenDown && (
