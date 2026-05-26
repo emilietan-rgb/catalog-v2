@@ -52,48 +52,60 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding-bottom: 20px;
+  padding: 16px 0;
   border-bottom: 1px solid rgba(0,0,0,0.07);
 }
 
 .rp-header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
 }
 
 .rp-cover {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
 }
 .rp-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rp-cover-placeholder {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   background: #f3f4f8;
 }
 
-.rp-header-info {
+.rp-header-identity {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
+  gap: 3px;
+  min-width: 0;
+}
+
+.rp-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
 }
 
 .rp-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: #0f1012;
   letter-spacing: -0.3px;
   line-height: 1.2;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rp-artist-line {
-  font-size: 14px;
+  font-size: 13px;
   color: #9aa0b0;
   margin: 0;
 }
@@ -105,10 +117,48 @@
 
 .rp-header-right {
   display: flex;
-  align-items: flex-start;
-  gap: 32px;
+  align-items: center;
+  gap: 28px;
   flex-shrink: 0;
 }
+
+.rp-header-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+}
+
+.rp-header-stat-label {
+  font-size: 11px;
+  color: #9aa0b0;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.rp-header-stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f1012;
+  white-space: nowrap;
+}
+
+.rp-upc-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #cdd3e2;
+  padding: 2px;
+  border-radius: 3px;
+  line-height: 0;
+  flex-shrink: 0;
+  transition: color 0.1s, background 0.1s;
+}
+.rp-upc-inline-btn:hover { color: #3a3c42; background: #f0f1f5; }
 
 .rp-header-actions {
   display: flex;
@@ -191,6 +241,22 @@
 }
 .rp-tab:hover { color: #3a3c42; }
 .rp-tab--active { color: #0f1012; border-bottom-color: #0f1012; font-weight: 500; }
+
+.rp-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  margin-left: 6px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9aa0b0;
+}
+.rp-tab--active .rp-tab-count { background: rgba(0,0,0,0.07); color: #3a3c42; }
 
 /* Tab content */
 .rp-tab-content {
@@ -437,6 +503,13 @@
 .rp-tracks-header { border-radius: 8px 8px 0 0; overflow: hidden; }
 .rp-track-row:last-child { border-radius: 0 0 8px 8px; overflow: hidden; }
 
+.rp-accordion-body .rp-tracks-table {
+  border: none;
+  border-radius: 0;
+}
+.rp-accordion-body .rp-tracks-header { border-radius: 0; }
+.rp-accordion-body .rp-track-row:last-child { border-radius: 0; }
+
 .rp-tracks-header,
 .rp-track-row {
   display: grid;
@@ -677,14 +750,6 @@
   display: block;
 }
 
-.rp-info-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
-}
-.rp-info-row:last-child { border-bottom: none; }
 
 .rp-upc-cell {
   display: flex;
@@ -875,4 +940,243 @@
 .rp-info-value {
   font-size: 13px;
   color: #0f1012;
+}
+
+/* Header account */
+.rp-header-account {
+  font-size: 13px;
+  color: #9aa0b0;
+  margin: 2px 0 0;
+}
+
+/* Header UPC */
+.rp-header-upc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.rp-header-upc-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9aa0b0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.rp-header-upc .mono {
+  font-size: 12px;
+  color: #5a6070;
+}
+
+/* Header status badge line */
+.rp-header-status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.rp-header-status-date {
+  font-size: 12px;
+  color: #9aa0b0;
+}
+.rp-header-status-partial {
+  font-size: 11px;
+  color: #b45309;
+  background: rgba(180,83,9,0.08);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+/* Context banner */
+.rp-ctx-banner {
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rp-ctx-banner--neutral { background: #f3f4f8; }
+.rp-ctx-banner--warning { background: #FEF3E2; }
+.rp-ctx-banner--error   { background: #FEF2F2; }
+
+.rp-ctx-banner-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rp-ctx-banner-icon {
+  flex-shrink: 0;
+  line-height: 0;
+}
+.rp-ctx-banner--neutral .rp-ctx-banner-icon { color: #9aa0b0; }
+.rp-ctx-banner--warning .rp-ctx-banner-icon { color: #e59c2e; }
+.rp-ctx-banner--error   .rp-ctx-banner-icon { color: #e0473a; }
+
+.rp-ctx-banner-title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.rp-ctx-banner--neutral .rp-ctx-banner-title { color: #3a3c42; }
+.rp-ctx-banner--warning .rp-ctx-banner-title { color: #92400e; }
+.rp-ctx-banner--error   .rp-ctx-banner-title { color: #991b1b; }
+
+.rp-ctx-banner-sub {
+  font-size: 12px;
+  color: #9aa0b0;
+  padding-left: 21px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.rp-ctx-banner-actions {
+  padding-left: 21px;
+  margin-top: 6px;
+}
+
+.rp-ctx-banner-btn {
+  height: 26px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  background: #d97706;
+  color: #fff;
+  transition: background 0.1s;
+}
+.rp-ctx-banner-btn:hover { background: #b45309; }
+
+.rp-ctx-banner-link {
+  font-size: 12px;
+  padding-left: 21px;
+  color: #92400e;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Clickable track row */
+.rp-track-row--clickable { cursor: pointer; }
+
+/* Track info dialog */
+.rp-track-info-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.rp-track-info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: 13px;
+  color: #0f1012;
+}
+.rp-track-info-row:last-child { border-bottom: none; }
+.rp-track-info-label {
+  width: 100px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #9aa0b0;
+}
+
+/* Scope summary card */
+.rp-scope-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 8px;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.rp-scope-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rp-scope-label {
+  font-size: 12px;
+  color: #9aa0b0;
+  width: 100px;
+  flex-shrink: 0;
+}
+.rp-scope-value {
+  font-size: 13px;
+  color: #0f1012;
+}
+
+/* Accordion */
+.rp-accordion {
+  border: 0.5px solid rgba(0,0,0,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+.rp-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.rp-accordion-header:hover { background: #fafaf9; }
+.rp-accordion-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f1012;
+}
+.rp-accordion-chevron {
+  color: #9aa0b0;
+  flex-shrink: 0;
+  transition: transform 0.18s;
+}
+.rp-accordion-chevron--open { transform: rotate(90deg); }
+.rp-accordion-body {
+  border-top: 0.5px solid rgba(0,0,0,0.08);
+  background: #fff;
+}
+
+/* Info property list (accordion body) */
+.rp-info-grid {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 16px 8px;
+}
+.rp-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+}
+.rp-info-row-label {
+  font-size: 13px;
+  color: #9aa0b0;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+.rp-info-row-value {
+  font-size: 13px;
+  color: #0f1012;
+  text-align: right;
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import StatusBadge from './StatusBadge'
 import TrackManagementModal from './TrackManagementModal'
 import './ReleasePage.css'
@@ -201,6 +201,8 @@ function TerritoriesTab({ releaseState }) {
   )
 }
 
+const DELIVERED_STATES = new Set(['delivered','delivered_partial','tracks_all_takedown','takedown_progress','takedown_done'])
+
 function DistributionTab({ releaseState, release }) {
   const [distSubTab, setDistSubTab] = useState('stores')
   const [dialog, setDialog] = useState(null)
@@ -276,14 +278,6 @@ function DistributionTab({ releaseState, release }) {
 
     return (
       <>
-        {isPartial && (
-          <div className="rp-partial-notice">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 2L1.5 13h13L8 2z"/><path d="M8 7v3"/><circle cx="8" cy="12" r="0.5" fill="currentColor" stroke="none"/>
-            </svg>
-            Partial takedown active
-          </div>
-        )}
         <div className="rp-section">
           <span className="rp-section-label">Top stores</span>
           <div className="rp-store-list">
@@ -313,11 +307,28 @@ function DistributionTab({ releaseState, release }) {
     )
   }
 
-  const DELIVERED_STATES = new Set(['delivered','delivered_partial','tracks_all_takedown','takedown_progress','takedown_done'])
   const storesCount = DELIVERED_STATES.has(releaseState) ? 52 : 0
 
   return (
     <div className="rp-tab-content">
+      <div className="rp-scope-card">
+        <div className="rp-scope-row">
+          <span className="rp-scope-label">Initial scope</span>
+          <span className="rp-scope-value">81 stores · Worldwide</span>
+        </div>
+        {DELIVERED_STATES.has(releaseState) && (
+          <div className="rp-scope-row">
+            <span className="rp-scope-label">Current</span>
+            <span className="rp-scope-value">
+              <span style={{ color: '#189c4c' }}>52 delivered</span>
+              {' · '}
+              <span style={{ color: '#9aa0b0' }}>24 not delivered</span>
+              {' · '}
+              <span style={{ color: '#e63a52' }}>5 error</span>
+            </span>
+          </div>
+        )}
+      </div>
       <div className="rp-dist-subtabs">
         <button className={`rp-dist-subtab${distSubTab === 'stores' ? ' rp-dist-subtab--active' : ''}`} onClick={() => setDistSubTab('stores')}>
           Stores<span className="rp-dist-subtab-count">{storesCount}</span>
@@ -332,6 +343,51 @@ function DistributionTab({ releaseState, release }) {
 }
 
 // ─── Tracks tab ───────────────────────────────────────────────────────────────
+
+function TrackInfoDialog({ track, trackStatus, onClose }) {
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  const rows = [
+    track.takedownInitiated && { label: 'Initiated',   value: track.takedownInitiated },
+    track.takedownBy        && { label: 'By',          value: track.takedownBy        },
+    track.takedownReason    && { label: 'Reason',      value: track.takedownReason    },
+    track.takenDownDate     && { label: 'Taken down',  value: track.takenDownDate     },
+    track.isrc              && { label: 'ISRC',        value: track.isrc, mono: true  },
+  ].filter(Boolean)
+
+  return (
+    <div className="rp-overlay" onMouseDown={onClose}>
+      <div className="rp-dialog" onMouseDown={e => e.stopPropagation()}>
+        <div className="rp-dialog-header">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h3 className="rp-dialog-title" style={{ margin: 0 }}>{track.title}</h3>
+            {track.version && <span className="rp-track-version" style={{ alignSelf: 'flex-start' }}>{track.version}</span>}
+          </div>
+          <button className="rp-dialog-close" onClick={onClose} aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M3 3l10 10M13 3L3 13"/>
+            </svg>
+          </button>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <TrackBadge status={trackStatus} />
+        </div>
+        <div className="rp-track-info-rows">
+          {rows.map(({ label, value, mono }) => (
+            <div key={label} className="rp-track-info-row">
+              <span className="rp-track-info-label">{label}</span>
+              <span className={mono ? 'mono' : ''}>{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function TrackBadge({ status }) {
   const cfgs = {
@@ -352,6 +408,7 @@ function TrackBadge({ status }) {
 function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses, onConfirmTakedown, onCancelTakedown }) {
   const [openMenu, setOpenMenu] = useState(null)
   const [pendingTakedown, setPendingTakedown] = useState(null)
+  const [infoDialog, setInfoDialog] = useState(null)
   const [playingId, setPlayingId] = useState(null)
   const togglePlay = id => setPlayingId(prev => prev === id ? null : id)
 
@@ -365,9 +422,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
   const effectiveStatus = id => trackStatusOverride || statuses[id]
 
   const openTakedownModal = t => {
-    const occurrences = t.isrc
-      ? tracks.filter(t2 => t2.isrc === t.isrc)
-      : [t]
+    const occurrences = t.isrc ? tracks.filter(t2 => t2.isrc === t.isrc) : [t]
     setOpenMenu(null)
     setPendingTakedown({ track: t, occurrences })
   }
@@ -378,27 +433,31 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
   }
 
   return (
-    <div className="rp-tab-content">
-      <div className="rp-tracks-table">
-        <div className="rp-tracks-header">
-          <span className="rp-th"></span>
-          <span className="rp-th">#</span>
-          <span className="rp-th">Title</span>
-          <span className="rp-th">Artist</span>
-          <span className="rp-th">ISRC</span>
-          <span className="rp-th">Duration</span>
-          <span className="rp-th">Status</span>
-          <span className="rp-th rp-th--reason">Reason</span>
-          <span className="rp-th"></span>
-        </div>
-        {tracks.map((t, idx) => {
-          const isPlaying = playingId === t.id
-          return (
-          <div key={t.id} className={`rp-track-row${isPlaying ? ' rp-track-row--playing' : ''}`}>
+    <div className="rp-tracks-table">
+      <div className="rp-tracks-header">
+        <span className="rp-th"></span>
+        <span className="rp-th">#</span>
+        <span className="rp-th">Title</span>
+        <span className="rp-th">Artist</span>
+        <span className="rp-th">ISRC</span>
+        <span className="rp-th">Duration</span>
+        <span className="rp-th">Status</span>
+        <span className="rp-th rp-th--reason">Reason</span>
+        <span className="rp-th"></span>
+      </div>
+      {tracks.map((t, idx) => {
+        const isPlaying = playingId === t.id
+        const hasInfo = !trackStatusOverride && (t.takedownInitiated || t.takenDownDate || t.takedownReason)
+        return (
+          <div
+            key={t.id}
+            className={`rp-track-row${isPlaying ? ' rp-track-row--playing' : ''}${hasInfo ? ' rp-track-row--clickable' : ''}`}
+            onClick={hasInfo ? () => setInfoDialog(t) : undefined}
+          >
             <span className="rp-td rp-td--actions" style={{ paddingRight: 0 }}>
               <button
                 className={`rp-play-btn${isPlaying ? ' rp-play-btn--playing' : ''}`}
-                onClick={() => togglePlay(t.id)}
+                onClick={e => { e.stopPropagation(); togglePlay(t.id) }}
                 aria-label={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying
@@ -418,14 +477,13 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
             {t.isrc ? (
               <span
                 className="rp-td rp-isrc-cell"
-                onClick={() => navigator.clipboard?.writeText(t.isrc)}
+                onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText(t.isrc) }}
                 title="Copy ISRC"
               >
                 <span className="mono rp-isrc-text">{t.isrc}</span>
                 <span className="rp-isrc-icon">
                   <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="5" y="5" width="8" height="8" rx="1.5"/>
-                    <path d="M3 11V3h8"/>
+                    <rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/>
                   </svg>
                 </span>
               </span>
@@ -438,15 +496,17 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
             <span className="rp-td rp-td--actions">
               {!trackStatusOverride && (
                 <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
-                  <button className="rp-track-menu-btn" onClick={() => setOpenMenu(openMenu === t.id ? null : t.id)}>···</button>
+                  <button className="rp-track-menu-btn" onClick={e => { e.stopPropagation(); setOpenMenu(openMenu === t.id ? null : t.id) }}>···</button>
                   {openMenu === t.id && (
                     <div className="rp-track-menu">
+                      {hasInfo && (
+                        <button className="rp-menu-item" onClick={() => { setOpenMenu(null); setInfoDialog(t) }}>See info</button>
+                      )}
                       {statuses[t.id] === 'live' ? (
                         <button className="rp-menu-item rp-menu-item--danger" onClick={() => openTakedownModal(t)}>Takedown track</button>
                       ) : (
                         <button className="rp-menu-item" onClick={() => cancelTakedown(t.id)}>Cancel takedown</button>
                       )}
-                      <button className="rp-menu-item" onClick={() => setOpenMenu(null)}>See distribution</button>
                     </div>
                   )}
                 </div>
@@ -454,8 +514,7 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
             </span>
           </div>
         )
-        })}
-      </div>
+      })}
       {pendingTakedown && (
         <TrackManagementModal
           track={pendingTakedown.track}
@@ -466,137 +525,202 @@ function TracksTab({ tracks, artist, releaseTitle, trackStatusOverride, statuses
           onClose={() => setPendingTakedown(null)}
         />
       )}
+      {infoDialog && (
+        <TrackInfoDialog
+          track={infoDialog}
+          trackStatus={effectiveStatus(infoDialog.id)}
+          onClose={() => setInfoDialog(null)}
+        />
+      )}
     </div>
   )
 }
 
-// ─── Status block ─────────────────────────────────────────────────────────────
+// ─── UPC inline copy button ───────────────────────────────────────────────────
 
-const STATUS_ACCENT = {
-  delivered: { color: '#189c4c', rgb: '24,156,76'   },
-  review:    { color: '#e67828', rgb: '230,120,40'  },
-  action:    { color: '#e63a52', rgb: '230,58,82'   },
-  sent:      { color: '#7a57e2', rgb: '122,87,226'  },
-  takedown:  { color: '#3a3c42', rgb: '58,60,66'    },
-  draft:     { color: '#9aa0b0', rgb: '154,160,176' },
-}
-
-function StatusBlock({ releaseState, release, effectiveTracklist, onGoToTracks }) {
-  const TODAY = new Date(2026, 4, 13)
-
-  const parseDD = str => {
-    if (!str || str === '—') return null
-    const [d, m, y] = str.split('/')
-    return d && m && y ? new Date(+y, +m - 1, +d) : null
+function UpcCopyBtn({ upc }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard?.writeText(upc)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
   }
-
-  const urgency = dateStr => {
-    const dt = parseDD(dateStr)
-    if (!dt) return null
-    const days = Math.ceil((dt - TODAY) / 86400000)
-    if (days < 0) return { date: dateStr, label: 'Release date passed', color: '#e63a52' }
-    const relative = days === 0 ? 'Today' : `In ${days} day${days !== 1 ? 's' : ''}`
-    const warn  = days <= 3 ? ' ⚠' : ''
-    const color = days <= 3 ? '#e63a52' : days <= 14 ? '#b45309' : '#9aa0b0'
-    return { date: dateStr, label: relative + warn, color }
-  }
-
-  const progressCount  = effectiveTracklist.filter(t => t.status === 'takedown-progress').length
-  const takenDownCount = effectiveTracklist.filter(t => t.status === 'takedown').length
-
-  let badgeStatus, context, contextColor = null, secondLine = null, dateLine = null
-
-  switch (releaseState) {
-    case 'draft':
-      badgeStatus = 'draft'
-      context = 'In progress'
-      dateLine = urgency(release.releaseDate)
-      break
-    case 'review':
-      badgeStatus = 'review'
-      context = release.info || 'Under review'
-      dateLine = urgency(release.releaseDate)
-      break
-    case 'action':
-      badgeStatus = 'action'
-      context = release.info || 'Action required'
-      dateLine = urgency(release.releaseDate)
-      break
-    case 'sent':
-      badgeStatus = 'sent'
-      context = 'Scheduled'
-      dateLine = urgency(release.releaseDate)
-      break
-    case 'delivered':
-      badgeStatus = 'delivered'
-      context = `Live since ${release.releaseDate || '—'}`
-      break
-    case 'delivered_partial':
-      badgeStatus = 'delivered'
-      context = `Live since ${release.releaseDate || '—'}`
-      secondLine = progressCount > 0
-        ? { text: `Removing ${progressCount} track${progressCount !== 1 ? 's' : ''}`, color: '#b45309' }
-        : takenDownCount > 0
-          ? { text: `${takenDownCount} track${takenDownCount !== 1 ? 's' : ''} taken down`, color: '#b45309' }
-          : null
-      break
-    case 'tracks_all_takedown':
-    case 'takedown_progress':
-      badgeStatus = 'takedown'
-      context = 'In progress'
-      contextColor = '#b45309'
-      break
-    case 'takedown_done': {
-      badgeStatus = 'takedown'
-      context = release.info || 'Removed'
-      const removedStr = release.info?.startsWith('Removed ') ? release.info.replace('Removed ', '') : null
-      if (release.releaseDate && removedStr)
-        secondLine = { text: `Was live ${release.releaseDate} → ${removedStr}`, color: '#9aa0b0' }
-      break
-    }
-    default:
-      badgeStatus = release.status
-      context = release.info || ''
-  }
-
-  const accent = STATUS_ACCENT[badgeStatus] || STATUS_ACCENT.draft
-
   return (
-    <div
-      className="rp-status-block"
-      style={{ borderLeftColor: accent.color, background: `rgba(${accent.rgb},0.04)` }}
-    >
-      <span className="rp-status-heading">Release status</span>
-      <div className="rp-status-row">
-        <div className="rp-status-left">
-          <StatusBadge status={badgeStatus} />
-          {context && <p className="rp-status-context" style={contextColor ? { color: contextColor } : undefined}>{context}</p>}
-          {secondLine && (
-            onGoToTracks
-              ? <button className="rp-status-track-link" style={{ color: secondLine.color }} onClick={onGoToTracks}>{secondLine.text}</button>
-              : <p className="rp-status-line" style={{ color: secondLine.color }}>{secondLine.text}</p>
-          )}
-        </div>
-        {dateLine && (
-          <div className="rp-status-right">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: dateLine.color, flexShrink: 0 }}>
-              <rect x="2" y="3" width="12" height="11" rx="1.5"/>
-              <path d="M5 1v4M11 1v4M2 7h12"/>
-            </svg>
-            <div className="rp-status-right-info">
-              <span className="rp-status-right-date">Expected live · {dateLine.date}</span>
-              <span className="rp-status-urgency" style={{ color: dateLine.color }}>{dateLine.label}</span>
-            </div>
-          </div>
-        )}
+    <span className="rp-upc-copy-wrap">
+      <button className="rp-upc-inline-btn" onClick={copy} title={`Copy UPC · ${upc}`}>
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="5" y="5" width="8" height="8" rx="1.5"/><path d="M3 11V3h8"/>
+        </svg>
+      </button>
+      {copied && <span className="rp-upc-tooltip">Copied!</span>}
+    </span>
+  )
+}
+
+// ─── Context banner ───────────────────────────────────────────────────────────
+
+const InfoCircleIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="8" cy="8" r="6.5"/><path d="M8 8v3.5"/><circle cx="8" cy="5.5" r="0.5" fill="currentColor" stroke="none"/>
+  </svg>
+)
+const TriangleIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 2.5L1.5 13.5h13L8 2.5z"/><path d="M8 7v3"/><circle cx="8" cy="12" r="0.5" fill="currentColor" stroke="none"/>
+  </svg>
+)
+const CircleXIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="8" cy="8" r="6.5"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5"/>
+  </svg>
+)
+
+function Banner({ variant, icon, title, sub, action }) {
+  return (
+    <div className={`rp-ctx-banner rp-ctx-banner--${variant}`}>
+      <div className="rp-ctx-banner-row">
+        <span className="rp-ctx-banner-icon">{icon}</span>
+        <span className="rp-ctx-banner-title">{title}</span>
       </div>
+      {sub    && <p className="rp-ctx-banner-sub">{sub}</p>}
+      {action && <div className="rp-ctx-banner-actions">{action}</div>}
     </div>
   )
+}
+
+function ContextBanner({ releaseState, release }) {
+  if (releaseState === 'draft') return null
+  if (releaseState === 'delivered' && !release.copyrightAlert) return null
+
+  if (releaseState === 'delivered_partial') {
+    const takenDown = (release.tracklist || []).filter(t => t.status === 'takedown' || t.status === 'takedown-progress')
+    const count = takenDown.length
+    const first = takenDown[0]
+    const titleParts = [`${count} track${count !== 1 ? 's' : ''} taken down`]
+    if (first?.takedownInitiated) titleParts.push(`Initiated ${first.takedownInitiated}`)
+    if (first?.takedownBy)        titleParts.push(`by ${first.takedownBy}`)
+    return (
+      <Banner
+        variant="neutral"
+        icon={<InfoCircleIcon />}
+        title={titleParts.join(' · ')}
+        sub={first?.takedownReason || null}
+      />
+    )
+  }
+
+  if (releaseState === 'delivered') {
+    const { store, date, proofUploaded } = release.copyrightAlert
+    return (
+      <Banner
+        variant="warning"
+        icon={<TriangleIcon />}
+        title={`Copyright alert on ${store} · ${date}`}
+        sub={`Proof uploaded: ${proofUploaded ? 'Yes' : 'No'}`}
+        action={<button className="rp-ctx-banner-link">See more →</button>}
+      />
+    )
+  }
+
+  if (releaseState === 'review') {
+    const date = release.submittedDate || release.releaseDate || '—'
+    return (
+      <Banner
+        variant="neutral"
+        icon={<InfoCircleIcon />}
+        title={`Submitted on ${date} · Under review by Believe`}
+      />
+    )
+  }
+
+  if (releaseState === 'sent') {
+    const date = release.sentDate || release.submittedDate || release.releaseDate || '—'
+    return (
+      <Banner
+        variant="neutral"
+        icon={<InfoCircleIcon />}
+        title={`Sent to DSPs on ${date} · Delivery in progress`}
+      />
+    )
+  }
+
+  if (releaseState === 'action') {
+    const isBlacklisted = release.blacklisted || release.info === 'Blacklisted'
+    if (!isBlacklisted && !release.correctionDate && !release.correctionReason && !release.requestedBy) return null
+    if (isBlacklisted) {
+      return <Banner variant="error" icon={<CircleXIcon />} title="Not delivered · Blacklisted" />
+    }
+    const corrDate = release.correctionDate || '—'
+    const subParts = [
+      release.correctionReason,
+      release.requestedBy && `Requested by ${release.requestedBy}`,
+    ].filter(Boolean)
+    return (
+      <Banner
+        variant="warning"
+        icon={<TriangleIcon />}
+        title={`Correction requested · ${corrDate}`}
+        sub={subParts.join(' · ')}
+        action={<button className="rp-ctx-banner-btn">Fix and resubmit</button>}
+      />
+    )
+  }
+
+  if (releaseState === 'takedown_progress') {
+    const titleParts = ['Takedown in progress']
+    if (release.takedownInitiated) titleParts.push(`Initiated ${release.takedownInitiated}`)
+    if (release.takedownBy)        titleParts.push(`by ${release.takedownBy}`)
+    return (
+      <Banner
+        variant="error"
+        icon={<CircleXIcon />}
+        title={titleParts.join(' · ')}
+        sub={release.takedownReason || null}
+      />
+    )
+  }
+
+  if (releaseState === 'takedown_done' || releaseState === 'tracks_all_takedown') {
+    const takenDate = release.takenDownDate || release.takedownInitiated || '—'
+    const subParts = [
+      release.takedownInitiated && `Initiated ${release.takedownInitiated}`,
+      release.takedownBy        && `by ${release.takedownBy}`,
+      release.takedownReason    && `Reason: ${release.takedownReason}`,
+    ].filter(Boolean)
+    return (
+      <Banner
+        variant="error"
+        icon={<CircleXIcon />}
+        title={`Taken down on ${takenDate}`}
+        sub={subParts.join(' · ')}
+      />
+    )
+  }
+
+  return null
 }
 
 // ─── Overview tab ─────────────────────────────────────────────────────────────
 
-function UpcRow({ upc }) {
+function AccordionCard({ title, defaultOpen = true, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="rp-accordion">
+      <button className="rp-accordion-header" onClick={() => setOpen(o => !o)}>
+        <span className="rp-accordion-title">{title}</span>
+        <svg
+          className={`rp-accordion-chevron${open ? ' rp-accordion-chevron--open' : ''}`}
+          width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
+        >
+          <path d="M6 3l5 5-5 5"/>
+        </svg>
+      </button>
+      {open && <div className="rp-accordion-body">{children}</div>}
+    </div>
+  )
+}
+
+function UpcCell({ upc }) {
   const [copied, setCopied] = useState(false)
   const copy = () => {
     navigator.clipboard?.writeText(upc)
@@ -605,9 +729,9 @@ function UpcRow({ upc }) {
   }
   return (
     <div className="rp-info-row">
-      <span className="rp-info-label">UPC</span>
+      <span className="rp-info-row-label">UPC</span>
       <span className="rp-upc-cell">
-        <span className="mono">{upc || '—'}</span>
+        <span className="mono rp-info-row-value">{upc || '—'}</span>
         {upc && (
           <span className="rp-upc-copy-wrap">
             <button className="rp-upc-copy-btn" onClick={copy}>
@@ -623,16 +747,16 @@ function UpcRow({ upc }) {
   )
 }
 
-function InfoRow({ label, value }) {
+function InfoCell({ label, value }) {
   return (
     <div className="rp-info-row">
-      <span className="rp-info-label">{label}</span>
-      <span className="rp-info-value">{value}</span>
+      <span className="rp-info-row-label">{label}</span>
+      <span className="rp-info-row-value">{value}</span>
     </div>
   )
 }
 
-function OverviewTab({ release, releaseState, effectiveTracklist, onGoToTracks }) {
+function OverviewTab({ release }) {
   const typeLabel = release.type === 'video' ? 'Video' : release.type === 'ring' ? 'Ringtone' : 'Audio'
   const typeIcon  = release.type === 'video'
     ? <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="2" y="3" width="10" height="10" rx="1"/><path d="M12 6l3-2v8l-3-2"/></svg>
@@ -649,47 +773,32 @@ function OverviewTab({ release, releaseState, effectiveTracklist, onGoToTracks }
 
   return (
     <div className="rp-tab-content">
-      <StatusBlock releaseState={releaseState} release={release} effectiveTracklist={effectiveTracklist} onGoToTracks={onGoToTracks} />
-      <div className="rp-overview-grid">
-        <div className="rp-overview-card">
-          <span className="rp-card-heading">Release info</span>
-          <UpcRow upc={release.upc} />
-          <InfoRow label="Product type"       value={<span className="rp-detail-with-icon">{typeIcon}{typeLabel}</span>} />
-          <InfoRow label="Distribution"       value={<span className="rp-detail-with-icon">{distIcon}{distLabel}</span>} />
-          <InfoRow label="Account"            value={release.account || '—'} />
-          <InfoRow label="Label"              value={release.account || '—'} />
-          <InfoRow label="Genre"              value="Electronic / Dance" />
-          <InfoRow label="Explicit lyrics"    value="No" />
-          <InfoRow label="Release date"       value={dateValue} />
-          <InfoRow label="Territories"        value="Worldwide" />
-          <InfoRow label="Price tier"         value="Standard" />
-          <InfoRow label="Allow download"     value="Yes" />
-          <InfoRow label="YT reference match" value="Yes" />
-          <InfoRow label="FB reference match" value="Yes" />
+      <AccordionCard title="Details" defaultOpen={false}>
+        <div className="rp-info-grid">
+          <UpcCell upc={release.upc} />
+          <InfoCell label="Product type"       value={<span className="rp-detail-with-icon">{typeIcon}{typeLabel}</span>} />
+          <InfoCell label="Distribution"       value={<span className="rp-detail-with-icon">{distIcon}{distLabel}</span>} />
+          <InfoCell label="Account"            value={release.account || '—'} />
+          <InfoCell label="Label"              value={release.account || '—'} />
+          <InfoCell label="Genre"              value="Electronic / Dance" />
+          <InfoCell label="Explicit lyrics"    value="No" />
+          <InfoCell label="Release date"       value={dateValue} />
+          <InfoCell label="Territories"        value="Worldwide" />
+          <InfoCell label="Price tier"         value="Standard" />
+          <InfoCell label="Allow download"     value="Yes" />
+          <InfoCell label="YT reference match" value="Yes" />
+          <InfoCell label="FB reference match" value="Yes" />
         </div>
-        <div className="rp-overview-card">
-          <span className="rp-card-heading">Rights & credits</span>
-          <InfoRow label="© Copyright"     value={`${release.account || '—'}, 2026`} />
-          <InfoRow label="℗ Producer"      value={release.artist || '—'} />
-          <InfoRow label="Production year" value="2026" />
-          <InfoRow label="Composer"        value="Alexis Dubois" />
-          <InfoRow label="Author"          value="Alexis Dubois" />
+      </AccordionCard>
+      <AccordionCard title="Rights & credits" defaultOpen={false}>
+        <div className="rp-info-grid">
+          <InfoCell label="© Copyright"     value={`${release.account || '—'}, 2026`} />
+          <InfoCell label="℗ Producer"      value={release.artist || '—'} />
+          <InfoCell label="Production year" value="2026" />
+          <InfoCell label="Composer"        value="Alexis Dubois" />
+          <InfoCell label="Author"          value="Alexis Dubois" />
         </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Rights tab ───────────────────────────────────────────────────────────────
-
-function RightsTab() {
-  return (
-    <div className="rp-tab-content rp-empty-state">
-      <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" style={{ color: '#cdd3e2' }}>
-        <path d="M8 2l5 2v4c0 3-2.5 5.5-5 6-2.5-.5-5-3-5-6V4l5-2z"/>
-      </svg>
-      <p className="rp-empty-title">No rights information</p>
-      <p className="rp-empty-sub">Rights and ownership data for this release will appear here.</p>
+      </AccordionCard>
     </div>
   )
 }
@@ -725,6 +834,12 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
   const handleConfirmTakedown = ids => onTrackStatusChange?.(release.id, ids, 'takedown-progress')
   const handleCancelTakedown  = id  => onTrackStatusChange?.(release.id, [id], 'live')
 
+  const badgeStatus = {
+    draft:'draft', review:'review', sent:'sent', action:'action',
+    delivered:'delivered', delivered_partial:'delivered',
+    tracks_all_takedown:'takedown', takedown_progress:'takedown', takedown_done:'takedown',
+  }[releaseState] || 'delivered'
+
   return (
     <div className="rp-container">
       <button className="rp-back-btn" onClick={onBack}>
@@ -738,37 +853,54 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
         <div className="rp-header-left">
           <div className="rp-cover">
             {release.coverImage
-              ? <img src={release.coverImage} alt={release.title} width="64" height="64" />
+              ? <img src={release.coverImage} alt={release.title} width="80" height="80" />
               : <div className="rp-cover-placeholder" />}
           </div>
-          <div className="rp-header-info">
-            <h1 className="rp-title">{release.title}</h1>
+          <div className="rp-header-identity">
+            <div className="rp-header-title-row">
+              <h1 className="rp-title">{release.title}</h1>
+            </div>
             <p className="rp-artist-line">By <span className="rp-artist-link" onClick={() => setArtistDialog(true)}>{release.artist}</span></p>
           </div>
         </div>
-        <div className="rp-header-actions">
-          <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
-            <button className="rp-action-btn rp-action-btn--more" onClick={() => setMoreMenuOpen(o => !o)}>···</button>
-            {moreMenuOpen && release.status === 'delivered' && !allTakenDown && (
-              <div className="rp-track-menu" style={{ minWidth: 160 }}>
-                <button
-                  className="rp-menu-item rp-menu-item--danger"
-                  onMouseDown={() => { setMoreMenuOpen(false); setReleaseTakedownModal(true) }}
-                >
-                  Takedown release
-                </button>
-              </div>
-            )}
+        <div className="rp-header-right">
+          <div className="rp-header-stat">
+            <span className="rp-header-stat-label">Release date</span>
+            <span className="rp-header-stat-value">{release.releaseDate || '—'}</span>
           </div>
+          <div className="rp-header-stat">
+            <span className="rp-header-stat-label">Status</span>
+            <StatusBadge status={badgeStatus} />
+          </div>
+          <div className="rp-header-stat">
+            <span className="rp-header-stat-label">Account</span>
+            <span className="rp-header-stat-value">{release.account || '—'}</span>
+          </div>
+          {release.status === 'delivered' && !allTakenDown && (
+            <div className="rp-track-menu-wrap" onMouseDown={e => e.stopPropagation()}>
+              <button className="rp-action-btn rp-action-btn--more" onClick={() => setMoreMenuOpen(o => !o)}>···</button>
+              {moreMenuOpen && (
+                <div className="rp-track-menu" style={{ minWidth: 160 }}>
+                  <button
+                    className="rp-menu-item rp-menu-item--danger"
+                    onMouseDown={() => { setMoreMenuOpen(false); setReleaseTakedownModal(true) }}
+                  >
+                    Takedown release
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
+      <ContextBanner releaseState={releaseState} release={release} />
+
       <div className="rp-tabs">
         {[
-          { key: 'overview',     label: 'Overview'               },
-          { key: 'tracks',       label: `Tracks (${(release.tracklist || []).length})` },
-          { key: 'distribution', label: 'Distribution'           },
-          { key: 'rights',       label: 'Rights'                 },
+          { key: 'overview',     label: 'Overview'     },
+          { key: 'tracks',       label: 'Tracks', count: effectiveTracklist.length },
+          { key: 'distribution', label: 'Distribution' },
         ].map(t => (
           <button
             key={t.key}
@@ -776,14 +908,26 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
             onClick={() => setTab(t.key)}
           >
             {t.label}
+            {t.count != null && <span className="rp-tab-count">{t.count}</span>}
           </button>
         ))}
       </div>
 
+      {tab === 'overview'     && <OverviewTab release={release} />}
+      {tab === 'tracks'       && (
+        <div className="rp-tab-content">
+          <TracksTab
+            tracks={effectiveTracklist}
+            artist={release.artist}
+            releaseTitle={release.title}
+            trackStatusOverride={trackStatusOverride}
+            statuses={trackStatuses}
+            onConfirmTakedown={handleConfirmTakedown}
+            onCancelTakedown={handleCancelTakedown}
+          />
+        </div>
+      )}
       {tab === 'distribution' && <DistributionTab releaseState={releaseState} release={release} />}
-      {tab === 'tracks'       && <TracksTab tracks={release.tracklist || []} artist={release.artist} releaseTitle={release.title} trackStatusOverride={trackStatusOverride} statuses={trackStatuses} onConfirmTakedown={handleConfirmTakedown} onCancelTakedown={handleCancelTakedown} />}
-      {tab === 'overview'     && <OverviewTab release={release} releaseState={releaseState} effectiveTracklist={effectiveTracklist} onGoToTracks={() => setTab('tracks')} />}
-      {tab === 'rights'       && <RightsTab />}
 
       {artistDialog && (
         <div className="rp-overlay" onMouseDown={() => setArtistDialog(false)}>
