@@ -308,6 +308,7 @@ function DistributionTab({ releaseState, release }) {
   }
 
   const storesCount = DELIVERED_STATES.has(releaseState) ? 52 : 0
+  const errorCount = 5
 
   return (
     <div className="rp-tab-content">
@@ -324,7 +325,7 @@ function DistributionTab({ releaseState, release }) {
               {' · '}
               <span style={{ color: '#9aa0b0' }}>24 not delivered</span>
               {' · '}
-              <span style={{ color: '#e63a52' }}>5 error</span>
+              <span style={{ color: '#e63a52' }}>{errorCount} {errorCount > 1 ? 'errors' : 'error'}</span>
             </span>
           </div>
         )}
