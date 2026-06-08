@@ -9,7 +9,7 @@ import { RELEASES } from '../data/catalog'
 
 const ARTISTS  = [...new Set(RELEASES.map(r => r.artist))].sort()
 const ACCOUNTS = [...new Set(RELEASES.map(r => r.account))].sort()
-const STATUS_OPTIONS = ['Draft', 'Awaiting correction', 'To approve', 'Delivered', 'Not delivered', 'Taken down']
+const STATUS_OPTIONS = ['Draft', 'Awaiting correction', 'To approve', 'Delivered', 'On hold', 'Not delivered', 'Taken down']
 const EXPLOITATION_OPTIONS = ['Draft', 'Awaiting correction', 'To approve', 'Sellable', 'Unsellable']
 
 function getExploitationLabel(status) {
@@ -44,10 +44,11 @@ const STATUS_LABEL_MAP = {
   draft:               'Draft',
   awaiting_correction: 'Awaiting correction',
   removed:   'Taken down',
+  on_hold:   'On hold',
 }
 
 const ALERT_GROUPS = [
-  { label: 'Issues',    options: ['Back to producer', 'Copyright alert', 'Blacklisted'] },
+  { label: 'Issues',    options: ['Back to producer', 'Copyright alert', 'Locked'] },
   { label: 'Takedowns', options: ['Track taken down', 'Release taken down'] },
 ]
 
@@ -64,7 +65,7 @@ function getAlertCategories(release) {
   if (info.includes('taken down') || info.includes('takedown')) return ['Track taken down']
   if (info === 'Correction requested' || info === 'Back to producer') return ['Back to producer']
   if (info === 'Copyright alert') return ['Copyright alert']
-  if (info === 'Blacklisted') return ['Blacklisted']
+  if (info === 'Locked') return ['Locked']
   return []
 }
 
@@ -124,6 +125,16 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
     const date = parseDate(releaseDate)
     if (!date) return false
     const now = new Date()
+    if (filter === 'Coming week') {
+      const start = new Date(now); start.setHours(0,0,0,0)
+      const end = new Date(start); end.setDate(start.getDate() + 7); end.setHours(23,59,59,999)
+      return date >= start && date <= end
+    }
+    if (filter === 'Coming month') {
+      const start = new Date(now); start.setHours(0,0,0,0)
+      const end = new Date(start); end.setMonth(start.getMonth() + 1); end.setHours(23,59,59,999)
+      return date >= start && date <= end
+    }
     if (filter === 'This week') {
       const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0,0,0,0)
       const sun = new Date(mon); sun.setDate(mon.getDate() + 6); sun.setHours(23,59,59,999)
@@ -167,7 +178,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
     if (!matchesDateFilter(r.releaseDate, filters.date)) return false
     return true
   }).sort((a, b) => {
-    const priority = s => (s === 'draft' || s === 'review' || s === 'awaiting_correction') ? 0 : 1
+    const priority = s => s === 'draft' ? 0 : s === 'awaiting_correction' ? 1 : s === 'review' ? 2 : 3
     const pa = priority(a.status), pb = priority(b.status)
     if (pa !== pb) return pa - pb
     const da = parseDate(a.releaseDate)

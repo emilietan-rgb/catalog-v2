@@ -99,7 +99,7 @@ function getInfoColor(status, info) {
   if (!info) return '#9aa0b0'
   if (status === 'action') return '#0F1012'
   if (info.includes('taken down') || info.includes('takedown in progress')) return '#0F1012'
-  if (info === 'Copyright alert') return '#0F1012'
+  if (info === 'Copyright alert' || info === 'Locked') return '#0F1012'
   return '#9aa0b0'
 }
 
@@ -107,14 +107,14 @@ function getInfoIcon(info) {
   if (!info) return undefined
   if (info.includes('takedown in progress') || info.includes('taken down')) return 'block'
   if (info === 'Blacklisted') return 'block'
-  if (info === 'Copyright alert') return 'alert'
+  if (info === 'Copyright alert' || info === 'Locked') return 'alert'
   return undefined
 }
 
 function getInfoVariant(status, info) {
   if (status === 'action') return 'action'
   if (info && (info.includes('takedown in progress') || info.includes('taken down'))) return 'action'
-  if (info === 'Copyright alert') return 'action'
+  if (info === 'Copyright alert' || info === 'Locked') return 'action'
   return undefined
 }
 
@@ -147,7 +147,7 @@ function RenewIcon({ color }) {
 }
 
 function getExploitation(status) {
-  if (status === 'delivered') return { label: 'Sellable', variant: 'success' }
+  if (status === 'delivered' || status === 'on_hold') return { label: 'Sellable', variant: 'success' }
   if (status === 'takedown' || status === 'removed' || status === 'action')
     return { label: 'Unsellable', variant: 'neutral' }
   if (status === 'draft')               return { label: 'Draft', variant: 'neutral' }
@@ -187,7 +187,7 @@ function ExploitationChip({ status }) {
   const { label, variant } = getExploitation(status)
   const icon = status === 'draft' || status === 'awaiting_correction' ? CHIP_EDIT_ICON
              : status === 'review'    ? CHIP_SCHEDULE_ICON
-             : status === 'delivered' ? CHIP_CHECK_ICON
+             : (status === 'delivered' || status === 'on_hold') ? CHIP_CHECK_ICON
              : (status === 'takedown' || status === 'removed' || status === 'action') ? CHIP_BLOCK_ICON
              : null
   return (

@@ -13,6 +13,7 @@ function getReleaseState(release) {
   if (status === 'sent')      return 'sent'
   if (status === 'action')    return 'action'
   if (status === 'removed')   return 'removed'
+  if (status === 'on_hold')   return 'on_hold'
   if (status === 'takedown')  return info === 'In progress' ? 'takedown_progress' : 'takedown_done'
   if (status === 'delivered') {
     if (tracklist.length > 0 && tracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown'))
@@ -656,10 +657,10 @@ function ContextBanner({ releaseState, release }) {
   }
 
   if (releaseState === 'action') {
-    const isBlacklisted = release.blacklisted || release.info === 'Blacklisted'
+    const isBlacklisted = release.blacklisted || release.info === 'Blacklisted' || release.info === 'Locked'
     if (!isBlacklisted && !release.correctionDate && !release.correctionReason && !release.requestedBy) return null
     if (isBlacklisted) {
-      return <Banner variant="error" icon={<CircleXIcon />} title="Not delivered · Blacklisted" />
+      return <Banner variant="error" icon={<CircleXIcon />} title="Not delivered · Locked" />
     }
     const corrDate = release.correctionDate || '—'
     const corrTitle = release.info || 'Correction requested'
@@ -853,7 +854,7 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
     draft:'draft', awaiting_correction:'awaiting_correction', review:'review', sent:'sent', action:'action',
     delivered:'delivered', delivered_partial:'delivered',
     tracks_all_takedown:'takedown', takedown_progress:'takedown', takedown_done:'takedown',
-    removed:'removed',
+    removed:'removed', on_hold:'on_hold',
   }[releaseState] || 'delivered'
 
   return (

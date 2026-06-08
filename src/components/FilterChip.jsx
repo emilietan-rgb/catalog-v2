@@ -111,7 +111,7 @@ function ListDropdown({ options, value, onChange, multi, showSearch, avatarType,
 }
 
 function DateDropdown({ value, onChange }) {
-  const PRESETS = ['This week', 'This month', 'Last 3 months', 'This year']
+  const PRESETS = ['Coming week', 'Coming month', 'This week', 'This month', 'Last 3 months', 'This year']
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 

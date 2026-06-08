@@ -1,30 +1,22 @@
 import './StatusBadge.css'
 
 const STATUS_CONFIG = {
-  delivered: { label: 'Delivered',      bg: '#e8faef', border: '#d2f3df', color: '#189c4c' },
-  review:    { label: 'To approve',     bg: '#f3efff', border: '#e8dffe', color: '#7a57e2' },
-  action:    { label: 'Not delivered',  bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
-  sent:      { label: 'Sent to DSPs',   bg: '#f3efff', border: '#e8dffe', color: '#7a57e2' },
-  takedown:  { label: 'Not delivered',  bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
-  draft:               { label: 'Draft',               bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
-  awaiting_correction: { label: 'Awaiting correction', bg: '#fef2f2', border: '#fecaca', color: '#e63a52' },
-  removed:   { label: 'Taken down',      bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
+  delivered: { label: 'Delivered',      bg: 'transparent', border: '#d2f3df', color: '#189c4c' },
+  review:    { label: 'To approve',     bg: 'transparent', border: '#e8dffe', color: '#7a57e2' },
+  action:    { label: 'Not delivered',  bg: 'transparent', border: '#e5e7ef', color: '#747884' },
+  sent:      { label: 'Sent to DSPs',   bg: 'transparent', border: '#e8dffe', color: '#7a57e2' },
+  takedown:  { label: 'Not delivered',  bg: 'transparent', border: '#e5e7ef', color: '#747884' },
+  draft:               { label: 'Draft',               bg: 'transparent', border: '#e5e7ef', color: '#747884' },
+  awaiting_correction: { label: 'Awaiting correction', bg: 'transparent', border: '#fecaca', color: '#e63a52' },
+  removed:   { label: 'Taken down',      bg: 'transparent', border: '#fecaca', color: '#e63a52' },
+  on_hold:   { label: 'On hold',         bg: 'transparent', border: '#fde68a', color: '#b45309' },
 }
 
-const EDIT_ICON = (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <path d="M11 2l3 3-8 8H3v-3l8-8z"/>
+const NOISE_CONTROL_OFF_ICON = (
+  <svg width="6" height="6" viewBox="0 0 6 6" fill="currentColor" style={{ flexShrink: 0 }}>
+    <circle cx="3" cy="3" r="3"/>
   </svg>
 )
-
-const SCHEDULE_ICON = (
-  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-    <circle cx="8" cy="8" r="6"/>
-    <path d="M8 5v3.5l2 2"/>
-  </svg>
-)
-
-const WITH_EDIT_ICON = new Set(['draft', 'awaiting_correction'])
 
 export default function StatusBadge({ status, count }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.takedown
@@ -34,8 +26,7 @@ export default function StatusBadge({ status, count }) {
       className="status-badge"
       style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.color }}
     >
-      {WITH_EDIT_ICON.has(status) && EDIT_ICON}
-      {status === 'review' && SCHEDULE_ICON}
+      {NOISE_CONTROL_OFF_ICON}
       {label}
     </span>
   )
