@@ -9,7 +9,7 @@ import { RELEASES } from '../data/catalog'
 
 const ARTISTS  = [...new Set(RELEASES.map(r => r.artist))].sort()
 const ACCOUNTS = [...new Set(RELEASES.map(r => r.account))].sort()
-const STATUS_OPTIONS = ['Draft', 'Awaiting correction', 'To approve', 'Delivered', 'On hold', 'Not delivered', 'Taken down']
+const STATUS_OPTIONS = ['On hold', 'Delivered', 'Not delivered', 'Taken down']
 const EXPLOITATION_OPTIONS = ['Draft', 'Awaiting correction', 'To approve', 'Sellable', 'Unsellable']
 
 function getExploitationLabel(status) {
@@ -95,8 +95,8 @@ function Toolbar({ search, onSearch, filters, onFilter, onClearFilters }) {
         </div>
         <FilterChip label="Account" options={ACCOUNTS} value={filters.account} onChange={v => onFilter('account', v)} multi showSearch avatarType="initials" getMeta={getAccountMeta} />
         <FilterChip label="Release date" value={filters.date} onChange={v => onFilter('date', v)} type="date" />
-        <FilterChip label="Delivery"  options={STATUS_OPTIONS} value={filters.status} onChange={v => onFilter('status', v)} multi />
         <FilterChip label="Exploitation" options={EXPLOITATION_OPTIONS} value={filters.exploitation} onChange={v => onFilter('exploitation', v)} multi />
+        <FilterChip label="Delivery"  options={STATUS_OPTIONS} value={filters.status} onChange={v => onFilter('status', v)} multi />
         <FilterChip label="Alerts" groups={ALERT_GROUPS} value={filters.alerts} onChange={v => onFilter('alerts', v)} multi />
         {(filters.account.length > 0 || filters.artist.length > 0 || filters.status.length > 0 || filters.exploitation.length > 0 || filters.alerts.length > 0 || filters.date) && (
           <button className="btn-clear-filters" onClick={onClearFilters}>Clear</button>
