@@ -11,6 +11,21 @@ const STATUS_CONFIG = {
   removed:   { label: 'Taken down',      bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
 }
 
+const EDIT_ICON = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M11 2l3 3-8 8H3v-3l8-8z"/>
+  </svg>
+)
+
+const SCHEDULE_ICON = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <circle cx="8" cy="8" r="6"/>
+    <path d="M8 5v3.5l2 2"/>
+  </svg>
+)
+
+const WITH_EDIT_ICON = new Set(['draft', 'awaiting_correction'])
+
 export default function StatusBadge({ status, count }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.takedown
   const label = (status === 'delivered' && count != null) ? `${cfg.label} (${count})` : cfg.label
@@ -19,6 +34,8 @@ export default function StatusBadge({ status, count }) {
       className="status-badge"
       style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.color }}
     >
+      {WITH_EDIT_ICON.has(status) && EDIT_ICON}
+      {status === 'review' && SCHEDULE_ICON}
       {label}
     </span>
   )

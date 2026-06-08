@@ -149,16 +149,53 @@ function RenewIcon({ color }) {
 function getExploitation(status) {
   if (status === 'delivered') return { label: 'Sellable', variant: 'success' }
   if (status === 'takedown' || status === 'removed' || status === 'action')
-    return { label: 'Unsellable', variant: 'danger' }
+    return { label: 'Unsellable', variant: 'neutral' }
   if (status === 'draft')               return { label: 'Draft', variant: 'neutral' }
   if (status === 'awaiting_correction') return { label: 'Awaiting correction', variant: 'danger' }
   if (status === 'review')              return { label: 'To approve', variant: 'purple' }
   return { label: 'Not commercialized', variant: 'neutral' }
 }
 
+const CHIP_EDIT_ICON = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M11 2l3 3-8 8H3v-3l8-8z"/>
+  </svg>
+)
+
+const CHIP_SCHEDULE_ICON = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <circle cx="8" cy="8" r="6"/>
+    <path d="M8 5v3.5l2 2"/>
+  </svg>
+)
+
+const CHIP_CHECK_ICON = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <circle cx="8" cy="8" r="6"/>
+    <path d="M5.5 8l2 2 3-3"/>
+  </svg>
+)
+
+const CHIP_BLOCK_ICON = (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ flexShrink: 0 }}>
+    <circle cx="8" cy="8" r="6"/>
+    <path d="M3.5 3.5l9 9"/>
+  </svg>
+)
+
 function ExploitationChip({ status }) {
   const { label, variant } = getExploitation(status)
-  return <span className={`exploitation-chip exploitation-chip--${variant}`}>{label}</span>
+  const icon = status === 'draft' || status === 'awaiting_correction' ? CHIP_EDIT_ICON
+             : status === 'review'    ? CHIP_SCHEDULE_ICON
+             : status === 'delivered' ? CHIP_CHECK_ICON
+             : (status === 'takedown' || status === 'removed' || status === 'action') ? CHIP_BLOCK_ICON
+             : null
+  return (
+    <span className={`exploitation-chip exploitation-chip--${variant}`}>
+      {icon}
+      {label}
+    </span>
+  )
 }
 
 function InfoLine({ text, color, icon, variant }) {
