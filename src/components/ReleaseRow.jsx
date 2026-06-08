@@ -99,7 +99,7 @@ function getInfoColor(status, info) {
   if (!info) return '#9aa0b0'
   if (status === 'action') return '#0F1012'
   if (info.includes('taken down') || info.includes('takedown in progress')) return '#0F1012'
-  if (info === 'Copyright alert' || info === 'Locked') return '#0F1012'
+  if (info === 'Copyright alert' || info === 'Locked' || info === 'Delivery issue') return '#0F1012'
   return '#9aa0b0'
 }
 
@@ -107,14 +107,14 @@ function getInfoIcon(info) {
   if (!info) return undefined
   if (info.includes('takedown in progress') || info.includes('taken down')) return 'block'
   if (info === 'Blacklisted') return 'block'
-  if (info === 'Copyright alert' || info === 'Locked') return 'alert'
+  if (info === 'Copyright alert' || info === 'Locked' || info === 'Delivery issue') return 'alert'
   return undefined
 }
 
 function getInfoVariant(status, info) {
   if (status === 'action') return 'action'
   if (info && (info.includes('takedown in progress') || info.includes('taken down'))) return 'action'
-  if (info === 'Copyright alert' || info === 'Locked') return 'action'
+  if (info === 'Copyright alert' || info === 'Locked' || info === 'Delivery issue') return 'action'
   return undefined
 }
 

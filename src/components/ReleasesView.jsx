@@ -48,7 +48,7 @@ const STATUS_LABEL_MAP = {
 }
 
 const ALERT_GROUPS = [
-  { label: 'Issues',    options: ['Back to producer', 'Copyright alert', 'Locked'] },
+  { label: 'Issues',    options: ['Back to producer', 'Copyright alert', 'Delivery issue', 'Locked'] },
   { label: 'Takedowns', options: ['Track taken down', 'Release taken down'] },
 ]
 
@@ -65,6 +65,7 @@ function getAlertCategories(release) {
   if (info.includes('taken down') || info.includes('takedown')) return ['Track taken down']
   if (info === 'Correction requested' || info === 'Back to producer') return ['Back to producer']
   if (info === 'Copyright alert') return ['Copyright alert']
+  if (info === 'Delivery issue') return ['Delivery issue']
   if (info === 'Locked') return ['Locked']
   return []
 }

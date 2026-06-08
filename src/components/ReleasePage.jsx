@@ -788,7 +788,7 @@ function OverviewTab({ release }) {
 
   return (
     <div className="rp-tab-content">
-      <AccordionCard title="Details" defaultOpen={false}>
+      <AccordionCard title="Details" defaultOpen={true}>
         <div className="rp-info-grid">
           <UpcCell upc={release.upc} />
           <InfoCell label="Product type"       value={<span className="rp-detail-with-icon">{typeIcon}{typeLabel}</span>} />
@@ -805,7 +805,7 @@ function OverviewTab({ release }) {
           <InfoCell label="FB reference match" value="Yes" />
         </div>
       </AccordionCard>
-      <AccordionCard title="Rights & credits" defaultOpen={false}>
+      <AccordionCard title="Rights & credits" defaultOpen={true}>
         <div className="rp-info-grid">
           <InfoCell label="© Copyright"     value={`${release.account || '—'}, 2026`} />
           <InfoCell label="℗ Producer"      value={release.artist || '—'} />
