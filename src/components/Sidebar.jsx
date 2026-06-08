@@ -85,12 +85,6 @@ export default function Sidebar({ activeView, onNavigate, favoritesCount = 0 }) 
               Releases
             </button>
             <button
-              className={`nav-sub${activeView === 'drafts' ? ' active' : ''}`}
-              onClick={() => onNavigate('drafts')}
-            >
-              Drafts
-            </button>
-            <button
               className={`nav-sub${activeView === 'favorites' ? ' active' : ''}`}
               onClick={() => onNavigate('favorites')}
             >

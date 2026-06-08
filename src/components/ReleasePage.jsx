@@ -7,10 +7,12 @@ import './ReleasePage.css'
 
 function getReleaseState(release) {
   const { status, info, tracklist = [] } = release
-  if (status === 'draft')     return 'draft'
+  if (status === 'draft')               return 'draft'
+  if (status === 'awaiting_correction') return 'awaiting_correction'
   if (status === 'review')    return 'review'
   if (status === 'sent')      return 'sent'
   if (status === 'action')    return 'action'
+  if (status === 'removed')   return 'removed'
   if (status === 'takedown')  return info === 'In progress' ? 'takedown_progress' : 'takedown_done'
   if (status === 'delivered') {
     if (tracklist.length > 0 && tracklist.every(t => t.status === 'takedown-progress' || t.status === 'takedown'))
@@ -848,9 +850,10 @@ export default function ReleasePage({ release, onBack, isFavorited, onToggleFavo
   const handleCancelTakedown  = id  => onTrackStatusChange?.(release.id, [id], 'live')
 
   const badgeStatus = {
-    draft:'draft', review:'review', sent:'sent', action:'action',
+    draft:'draft', awaiting_correction:'awaiting_correction', review:'review', sent:'sent', action:'action',
     delivered:'delivered', delivered_partial:'delivered',
     tracks_all_takedown:'takedown', takedown_progress:'takedown', takedown_done:'takedown',
+    removed:'removed',
   }[releaseState] || 'delivered'
 
   return (

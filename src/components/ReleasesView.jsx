@@ -9,7 +9,17 @@ import { RELEASES } from '../data/catalog'
 
 const ARTISTS  = [...new Set(RELEASES.map(r => r.artist))].sort()
 const ACCOUNTS = [...new Set(RELEASES.map(r => r.account))].sort()
-const STATUS_OPTIONS = ['Delivered', 'Under review', 'Sent to DSPs', 'Not delivered']
+const STATUS_OPTIONS = ['Draft', 'Awaiting correction', 'To approve', 'Delivered', 'Not delivered', 'Taken down']
+const EXPLOITATION_OPTIONS = ['Draft', 'Awaiting correction', 'To approve', 'Sellable', 'Unsellable']
+
+function getExploitationLabel(status) {
+  if (status === 'delivered') return 'Sellable'
+  if (status === 'takedown' || status === 'removed' || status === 'action') return 'Unsellable'
+  if (status === 'draft')               return 'Draft'
+  if (status === 'awaiting_correction') return 'Awaiting correction'
+  if (status === 'review')              return 'To approve'
+  return 'Not commercialized'
+}
 
 const ARTIST_AVATAR_SEEDS = {
   'Aurélie Dumas':     'aurelie_av',
@@ -27,10 +37,13 @@ const ACCOUNT_RELEASE_COUNTS = RELEASES.reduce((acc, r) => { acc[r.account] = (a
 
 const STATUS_LABEL_MAP = {
   delivered: 'Delivered',
-  review:    'Under review',
+  review:    'To approve',
   action:    'Not delivered',
   sent:      'Sent to DSPs',
   takedown:  'Not delivered',
+  draft:               'Draft',
+  awaiting_correction: 'Awaiting correction',
+  removed:   'Taken down',
 }
 
 const ALERT_GROUPS = [
@@ -80,11 +93,11 @@ function Toolbar({ search, onSearch, filters, onFilter, onClearFilters }) {
           }
         </div>
         <FilterChip label="Account" options={ACCOUNTS} value={filters.account} onChange={v => onFilter('account', v)} multi showSearch avatarType="initials" getMeta={getAccountMeta} />
-        <FilterChip label="Artist"  options={ARTISTS}  value={filters.artist}  onChange={v => onFilter('artist',  v)} multi showSearch avatarType="photo" getAvatarSrc={getAvatarSrc} getMeta={getArtistMeta} />
         <FilterChip label="Release date" value={filters.date} onChange={v => onFilter('date', v)} type="date" />
-        <FilterChip label="Status"  options={STATUS_OPTIONS} value={filters.status} onChange={v => onFilter('status', v)} multi />
+        <FilterChip label="Delivery"  options={STATUS_OPTIONS} value={filters.status} onChange={v => onFilter('status', v)} multi />
+        <FilterChip label="Exploitation" options={EXPLOITATION_OPTIONS} value={filters.exploitation} onChange={v => onFilter('exploitation', v)} multi />
         <FilterChip label="Alerts" groups={ALERT_GROUPS} value={filters.alerts} onChange={v => onFilter('alerts', v)} multi />
-        {(filters.account.length > 0 || filters.artist.length > 0 || filters.status.length > 0 || filters.alerts.length > 0 || filters.date) && (
+        {(filters.account.length > 0 || filters.artist.length > 0 || filters.status.length > 0 || filters.exploitation.length > 0 || filters.alerts.length > 0 || filters.date) && (
           <button className="btn-clear-filters" onClick={onClearFilters}>Clear</button>
         )}
       </div>
@@ -96,7 +109,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
   const [selected, setSelected] = useState(new Set())
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [filters, setFilters] = useState({ account: [], artist: [], status: [], alerts: [], date: null })
+  const [filters, setFilters] = useState({ account: [], artist: [], status: [], exploitation: [], alerts: [], date: null })
 
   const handleFilter = (key, value) => { setFilters(f => ({ ...f, [key]: value })); setPage(1) }
 
@@ -146,6 +159,7 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
     if (filters.account.length && !filters.account.includes(r.account)) return false
     if (filters.artist.length  && !filters.artist.includes(r.artist))   return false
     if (filters.status.length  && !filters.status.includes(STATUS_LABEL_MAP[r.status])) return false
+    if (filters.exploitation.length && !filters.exploitation.includes(getExploitationLabel(r.status))) return false
     if (filters.alerts.length) {
       const cats = getAlertCategories(r)
       if (!filters.alerts.some(a => cats.includes(a))) return false
@@ -153,6 +167,9 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
     if (!matchesDateFilter(r.releaseDate, filters.date)) return false
     return true
   }).sort((a, b) => {
+    const priority = s => (s === 'draft' || s === 'review' || s === 'awaiting_correction') ? 0 : 1
+    const pa = priority(a.status), pb = priority(b.status)
+    if (pa !== pb) return pa - pb
     const da = parseDate(a.releaseDate)
     const db = parseDate(b.releaseDate)
     if (!da && !db) return 0
@@ -205,19 +222,25 @@ export default function ReleasesView({ onOpenRelease, favorites = [], onToggleFa
             </svg>
             Export releases
           </button>
+          <button className="btn-create-primary">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M8 3v10M3 8h10"/>
+            </svg>
+            Create
+          </button>
         </div>
       </div>
 
-      <Toolbar search={search} onSearch={setSearch} filters={filters} onFilter={handleFilter} onClearFilters={() => { setFilters({ account: [], artist: [], status: [], alerts: [], date: null }); setPage(1) }} />
+      <Toolbar search={search} onSearch={setSearch} filters={filters} onFilter={handleFilter} onClearFilters={() => { setFilters({ account: [], artist: [], status: [], exploitation: [], alerts: [], date: null }); setPage(1) }} />
 
       <div className="list-container">
         <div className="list-table-header">
           <div></div>
           <div className="th">Releases ({filtered.length})</div>
           <div className="th">UPC</div>
-          <div className="th">Account</div>
           <div className="th">Release date</div>
-          <div className="th">Status</div>
+          <div className="th">Exploitation</div>
+          <div className="th">Delivery</div>
           <div className="th">Alerts</div>
           <div></div>
         </div>

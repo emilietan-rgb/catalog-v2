@@ -6,7 +6,9 @@ const STATUS_CONFIG = {
   action:    { label: 'Not delivered',  bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
   sent:      { label: 'Sent to DSPs',   bg: '#f3efff', border: '#e8dffe', color: '#7a57e2' },
   takedown:  { label: 'Not delivered',  bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
-  draft:     { label: 'Draft',          bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
+  draft:               { label: 'Draft',               bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
+  awaiting_correction: { label: 'Awaiting correction', bg: '#fef2f2', border: '#fecaca', color: '#e63a52' },
+  removed:   { label: 'Taken down',      bg: '#f3f4f8', border: '#e5e7ef', color: '#747884' },
 }
 
 export default function StatusBadge({ status, count }) {

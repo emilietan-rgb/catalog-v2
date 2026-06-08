@@ -201,6 +201,24 @@
 .release-date-value  { font-size: 14px; font-weight: 400; color: #0F1012; }
 .release-time-value  { font-size: 14px; font-weight: 400; color: #747884; }
 .release-time        { font-size: 10px; color: #9aa0b0; font-family: 'Geist Mono', monospace; }
+.release-cell-exploitation { align-items: flex-start; }
+.exploitation-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.exploitation-chip--success { background: #e8faef; border-color: #d2f3df; color: #189c4c; }
+.exploitation-chip--danger  { background: #fef2f2; border-color: #fecaca; color: #e63a52; }
+.exploitation-chip--neutral { background: #f3f4f8; border-color: #e5e7ef; color: #747884; }
+.exploitation-chip--purple  { background: #f3efff; border-color: #e8dffe; color: #7a57e2; }
+
 .release-cell-status { flex-direction: column; gap: 3px; align-items: flex-start; }
 
 .release-info-line {

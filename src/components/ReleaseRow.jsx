@@ -146,6 +146,21 @@ function RenewIcon({ color }) {
   )
 }
 
+function getExploitation(status) {
+  if (status === 'delivered') return { label: 'Sellable', variant: 'success' }
+  if (status === 'takedown' || status === 'removed' || status === 'action')
+    return { label: 'Unsellable', variant: 'danger' }
+  if (status === 'draft')               return { label: 'Draft', variant: 'neutral' }
+  if (status === 'awaiting_correction') return { label: 'Awaiting correction', variant: 'danger' }
+  if (status === 'review')              return { label: 'To approve', variant: 'purple' }
+  return { label: 'Not commercialized', variant: 'neutral' }
+}
+
+function ExploitationChip({ status }) {
+  const { label, variant } = getExploitation(status)
+  return <span className={`exploitation-chip exploitation-chip--${variant}`}>{label}</span>
+}
+
 function InfoLine({ text, color, icon, variant }) {
   if (!text) return null
   const cls = `release-info-line${variant ? ` release-info-line--${variant}` : ''}`
@@ -218,26 +233,24 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
 
       {/* UPC */}
       <div className="release-cell release-cell-upc">
-        <span>{release.upc || '—'}</span>
-        {release.upc && (
-          <div className="upc-copy-wrap">
-            <button className="upc-copy-btn" onClick={handleCopyUpc}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="5" y="5" width="8" height="9" rx="1"/>
-                <path d="M3 11V3a1 1 0 0 1 1-1h7"/>
-              </svg>
-            </button>
-            {copied && <span className="upc-copied-tooltip">Copied!</span>}
-          </div>
+        {release.status === 'draft' || release.status === 'review' ? (
+          <span style={{ color: '#9aa0b0' }}>—</span>
+        ) : (
+          <>
+            <span>{release.upc || '—'}</span>
+            {release.upc && (
+              <div className="upc-copy-wrap">
+                <button className="upc-copy-btn" onClick={handleCopyUpc}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="5" y="5" width="8" height="9" rx="1"/>
+                    <path d="M3 11V3a1 1 0 0 1 1-1h7"/>
+                  </svg>
+                </button>
+                {copied && <span className="upc-copied-tooltip">Copied!</span>}
+              </div>
+            )}
+          </>
         )}
-      </div>
-
-      {/* Account */}
-      <div className="release-cell release-cell-account">
-        <span
-          className="release-account"
-          onClick={e => { e.stopPropagation(); setAccountDialog(true) }}
-        >{release.account}</span>
       </div>
 
       {/* Release date */}
@@ -246,9 +259,16 @@ export default function ReleaseRow({ release, selected, onSelect, onOpen, isFavo
         {release.releaseTime && <span className="release-time-value">{release.releaseTime}</span>}
       </div>
 
+      {/* Exploitation */}
+      <div className="release-cell release-cell-exploitation">
+        <ExploitationChip status={release.status} />
+      </div>
+
       {/* Status */}
       <div className="release-cell release-cell-status">
-        <StatusBadge status={derivedStatus} count={derivedStatus === 'delivered' ? 52 : undefined} />
+        {release.status === 'review' || release.status === 'draft' || release.status === 'awaiting_correction'
+          ? <span style={{ color: '#9aa0b0' }}>—</span>
+          : <StatusBadge status={derivedStatus} count={derivedStatus === 'delivered' ? 52 : undefined} />}
       </div>
 
       {/* Information */}
